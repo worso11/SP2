@@ -42,11 +42,11 @@ public class PetriNetPager {
     }
 
 
-    public void addNewPage(String context, String transId, Boolean isGenerated, String headId, String pageName) {
+    public void addNewPage(String context, String transId, Boolean isGenerated, String headId, String pageName, Boolean isDevice) {
         Page newPage;
         long count = getPages().stream().filter(e -> e.getContext().equals(context)).count();
         if (count == 0) {
-            newPage = new Page(context, isGenerated, headId, pageName);
+            newPage = new Page(context, isGenerated, headId, pageName, isDevice);
             if (!"".equals(context)) {
                 newPage.setTransId(transId);
             }
@@ -117,6 +117,13 @@ public class PetriNetPager {
         instances.appendChild(generalInstance);
 
         generateNestedInstance(pnmlDocument,getPages().get(0).getNestedPage(), generalTransInstance);
+
+        for (int i = 1; i < cache.getPages().size(); i++) {
+            if (getPages().get(i).getIsDevice()) {
+                generateNestedInstanceForDevice(pnmlDocument,getPages().get(i), generalTransInstance);
+            }
+        }
+
         return instances;
     }
 
@@ -138,4 +145,16 @@ public class PetriNetPager {
         }
     }
 
+    private void generateNestedInstanceForDevice(Document pnmlDocument,Page page, Element firstInstance) {
+        Element instance = pnmlDocument.createElement("instance");
+        Attr newPageIdAttr = pnmlDocument.createAttribute("id");
+        String newPageIdAttrValue = TranslatorTools.generateUUID();
+        newPageIdAttr.setValue(newPageIdAttrValue);
+        getInstancesBinders().add(newPageIdAttrValue);
+        Attr newTransAttr = pnmlDocument.createAttribute("trans");
+        newTransAttr.setValue(page.getHeadId());
+        instance.setAttributeNode(newPageIdAttr);
+        instance.setAttributeNode(newTransAttr);
+        firstInstance.appendChild(instance);
+    }
 }

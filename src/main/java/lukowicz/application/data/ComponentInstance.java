@@ -49,6 +49,17 @@ public class ComponentInstance {
         return dataPort;
     }
 
+    public DataPort getDataPortByNameAndDirection(String name, String direction) {
+        direction = direction.equals("") ? "in" : direction;
+
+        for (DataPort dp : dataPort) {
+            if (dp.getName().equals(name) && dp.getDirection().equals(direction)) {
+                return dp;
+            }
+        }
+        return null;
+    }
+
 
     public List<ComponentInstance> getComponentInstancesNested() {
         return componentInstancesNested;

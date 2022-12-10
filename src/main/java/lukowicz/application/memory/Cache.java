@@ -35,8 +35,10 @@ public class Cache {
 
     public void moveProcesses() {
         for (int i = 0; i < COMPONENT_INSTANCES.size(); ++i) {
-            if (COMPONENT_INSTANCES.get(i).getCategory().equals(Category.PROCESS.getValue())) {
-                HIERARCHY_TRANSITIONS.add(COMPONENT_INSTANCES.get(i));
+            if (COMPONENT_INSTANCES.get(i).getCategory().equals(Category.PROCESS.getValue()) || COMPONENT_INSTANCES.get(i).getCategory().equals(Category.DEVICE.getValue())) {
+                if (COMPONENT_INSTANCES.get(i).getCategory().equals(Category.PROCESS.getValue())) {
+                    HIERARCHY_TRANSITIONS.add(COMPONENT_INSTANCES.get(i));
+                }
                 movePeriodThread(COMPONENT_INSTANCES.get(i));
             }
         }
@@ -45,7 +47,7 @@ public class Cache {
     public void movePeriodThread(ComponentInstance componentInstance) {
         if (componentInstance.getComponentInstancesNested() != null) {
             for (int i = 0; i < componentInstance.getComponentInstancesNested().size(); ++i) {
-                if ((componentInstance.getComponentInstancesNested().get(i).getCategory().equals(Category.THREAD.getValue()) && !"".equals(componentInstance.getComponentInstancesNested().get(i).getPeriod()))) {
+                if ((componentInstance.getComponentInstancesNested().get(i).getCategory().equals(Category.THREAD.getValue()) && !"".equals(componentInstance.getComponentInstancesNested().get(i).getPeriod())) || componentInstance.getComponentInstancesNested().get(i).getCategory().equals(Category.DEVICE.getValue())) {
                     HIERARCHY_TRANSITIONS.add(componentInstance.getComponentInstancesNested().get(i));
                 }
             }
@@ -70,6 +72,20 @@ public class Cache {
 
     public ComponentInstance getComponentInstanceByIndex(Integer index) {
         return COMPONENT_INSTANCES.get(index);
+    }
+
+    public ComponentInstance getComponentInstanceById(String id) {
+        for (ComponentInstance componentInstance : COMPONENT_INSTANCES) {
+            if (componentInstance.getId() == id) {
+                return componentInstance;
+            }
+            for (ComponentInstance nestedComponentInstance : componentInstance.getComponentInstancesNested()) {
+                if (nestedComponentInstance.getId() == id) {
+                    return componentInstance;
+                }
+            }
+        }
+        return null;
     }
 
     public List<ComponentInstance> getHIERARCHY_TRANSITIONS() {

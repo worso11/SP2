@@ -3,7 +3,7 @@ package lukowicz.application.data;
 public class Socket {
 
     private final String componentId;
-    private final String portId;
+    private String portId;
     private String socketId;
     private final String direction;
 
@@ -27,4 +27,6 @@ public class Socket {
     }
 
     public void setSocketId(String socketId) {this.socketId = socketId; }
+
+    public void setPortId(String portId) {this.portId = portId; }
 }

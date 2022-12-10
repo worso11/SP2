@@ -14,12 +14,15 @@ public class Page implements Comparable<Page> {
     private String headId;
     private String pageName;
 
-    public Page(String context, Boolean generated, String headId, String pageName) {
+    private Boolean isDevice;
+
+    public Page(String context, Boolean generated, String headId, String pageName, Boolean isDevice) {
         this.context = context;
         this.pageId = TranslatorTools.generateUUID();
         this.generated = generated;
         this.headId = headId;
         this.pageName = pageName;
+        this.isDevice = isDevice;
     }
 
     public void setPageId(String pageId) {
@@ -60,6 +63,8 @@ public class Page implements Comparable<Page> {
     public String getPageName() {
         return pageName;
     }
+
+    public Boolean getIsDevice() { return isDevice; }
 
 
     @Override

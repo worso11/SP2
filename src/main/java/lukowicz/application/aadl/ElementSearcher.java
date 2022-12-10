@@ -25,80 +25,102 @@ public class ElementSearcher {
         this.petriNetPager = petriNetPager;
     }
 
-    public void searchElements(NodeList componenentInstances, ComponentInstance processingElement) {
-        for (int i = 0; i < componenentInstances.getLength(); i++) {
-            Node component = componenentInstances.item(i);
-            LOG.debug("Current Element : {} ", component.getNodeName());
+    public void searchElements(NodeList componentInstances, ComponentInstance processingElement) {
+        for (int i = 0; i < componentInstances.getLength(); i++) {
+            Node component = componentInstances.item(i);
+            searchElement(component, processingElement);
+        }
 
-            if (component.getNodeType() == Node.ELEMENT_NODE) {
-                ComponentInstance componentInstance;
-                Element actualComponent = (Element) component;
-                if (processingElement != null) {
-                    componentInstance = processingElement;
-                } else {
-                    componentInstance = new ComponentInstance(actualComponent.getAttribute("name"),
-                            actualComponent.getAttribute("category"));
-                }
+    }
 
-                if (cache.isUniqueComponentsContain(actualComponent.getAttribute("name"))) {
-                    continue;
-                }
+    public void searchElement(Node component, ComponentInstance processingElement) {
+        LOG.debug("Current Element : {} ", component.getNodeName());
 
-                ComponentInstance componentInstanceNested = processingElement != null ?
-                        new ComponentInstance(actualComponent.getAttribute("name"), actualComponent.getAttribute("category")) : null;
+        if (component.getNodeType() == Node.ELEMENT_NODE) {
+            ComponentInstance componentInstance;
+            Element actualComponent = (Element) component;
+            if (processingElement != null) {
+                componentInstance = processingElement;
+            } else {
+                componentInstance = new ComponentInstance(actualComponent.getAttribute("name"),
+                        actualComponent.getAttribute("category"));
+            }
 
-                NodeList featureInstances = actualComponent.getElementsByTagName("featureInstance");
+            LOG.debug("Name: {}", componentInstance.getName());
+            if (cache.isUniqueComponentsContain(actualComponent.getAttribute("name"))) {
+                return;
+            }
 
-                NodeList ownedPropertyAssociations = actualComponent.getElementsByTagName("ownedPropertyAssociation");
-                String periodValue = "";
-                for (int k = 0; k < ownedPropertyAssociations.getLength(); k++) {
-                    Node ownerProperty = ownedPropertyAssociations.item(k);
-                    Element ownedPropertyElement = (Element) ownerProperty;
-                    LOG.debug("Owned Property {} ", ownedPropertyElement);
-                    NodeList ownerProperties = ownedPropertyElement.getElementsByTagName("property");
-                    for (int l = 0; l < ownerProperties.getLength(); ++l) {
-                        Node property = ownerProperties.item(l);
-                        Element propertyElement = (Element) property;
-                        Attr hrefProperty = propertyElement.getAttributeNode("href");
-                        if (hrefProperty.getValue().contains("Timing_Properties.Period")) {
-                            periodValue = ownedPropertyElement.getElementsByTagName("ownedValue").item(1).
-                                    getAttributes().getNamedItem("value").getNodeValue();
-                            LOG.debug("period Value {} ", periodValue);
-                        }
+            ComponentInstance componentInstanceNested = processingElement != null ?
+                    new ComponentInstance(actualComponent.getAttribute("name"), actualComponent.getAttribute("category")) : null;
 
+            NodeList featureInstances = actualComponent.getElementsByTagName("featureInstance");
+
+            NodeList ownedPropertyAssociations = actualComponent.getElementsByTagName("ownedPropertyAssociation");
+            String periodValue = "";
+            for (int k = 0; k < ownedPropertyAssociations.getLength(); k++) {
+                Node ownerProperty = ownedPropertyAssociations.item(k);
+                Element ownedPropertyElement = (Element) ownerProperty;
+                LOG.debug("Owned Property {} ", ownedPropertyElement);
+                NodeList ownerProperties = ownedPropertyElement.getElementsByTagName("property");
+                for (int l = 0; l < ownerProperties.getLength(); ++l) {
+                    Node property = ownerProperties.item(l);
+                    Element propertyElement = (Element) property;
+                    Attr hrefProperty = propertyElement.getAttributeNode("href");
+                    if (hrefProperty.getValue().contains("Timing_Properties.Period")) {
+                        periodValue = ownedPropertyElement.getElementsByTagName("ownedValue").item(1).
+                                getAttributes().getNamedItem("value").getNodeValue();
+                        LOG.debug("period Value {} ", periodValue);
                     }
-                }
-                for (int j = 0; j < featureInstances.getLength(); j++) {
-                    Node featureInstance = featureInstances.item(j);
 
-                    Element featureElement = (Element) featureInstance;
-                    if (!"busAccess".equals(featureElement.getAttribute("category"))) {
-                        LOG.debug("Name of feature : {} ", featureElement.getAttribute("name"));
-                        if (componentInstanceNested != null) {
-                            componentInstance.getReverseFeatureInstances().remove(new DataPort(featureElement.getAttribute("name"),
-                                    featureElement.getAttribute("direction")));
-                            componentInstance.getReverseFeatureInstances();//wroc do starego porzadku
-                            DataPort dp = new DataPort(featureElement.getAttribute("name"),
+                }
+            }
+            for (int j = 0; j < featureInstances.getLength(); j++) {
+                Node featureInstance = featureInstances.item(j);
+
+                Element featureElement = (Element) featureInstance;
+                if (!"busAccess".equals(featureElement.getAttribute("category"))) {
+                    LOG.debug("Name of feature : {} ", featureElement.getAttribute("name"));
+                    if (componentInstanceNested != null && processingElement != null && processingElement.getCategory().equals(Category.DEVICE.getValue())) {
+                        DataPort dp = componentInstance.getDataPortByNameAndDirection(featureElement.getAttribute("name"),
+                                featureElement.getAttribute("direction"));
+                        componentInstance.getReverseFeatureInstances().remove(new DataPort(featureElement.getAttribute("name"),
+                                featureElement.getAttribute("direction")));
+                        componentInstance.getReverseFeatureInstances();//wroc do starego porzadku
+                       /* if (dp != null) {
+                            componentInstanceNested.getDataPort().add(dp);
+                        } else {*/
+                            dp = new DataPort(featureElement.getAttribute("name"),
                                     featureElement.getAttribute("direction"));
                             componentInstanceNested.getDataPort().add(dp);
-                        } else {
-                            DataPort dp = new DataPort(featureElement.getAttribute("name"),
-                                    featureElement.getAttribute("direction"));
-                            componentInstance.getDataPort().add(dp);
-                        }
+                        //}
+                    } else if (componentInstanceNested != null) {
+                        componentInstance.getReverseFeatureInstances().remove(new DataPort(featureElement.getAttribute("name"),
+                                featureElement.getAttribute("direction")));
+                        componentInstance.getReverseFeatureInstances();//wroc do starego porzadku
+                        DataPort dp = new DataPort(featureElement.getAttribute("name"),
+                                featureElement.getAttribute("direction"));
+                        componentInstanceNested.getDataPort().add(dp);
+                    } else {
+                        DataPort dp = new DataPort(featureElement.getAttribute("name"),
+                                featureElement.getAttribute("direction"));
+                        componentInstance.getDataPort().add(dp);
                     }
                 }
-                if (componentInstanceNested != null) {
-                    //czy nie mozna lepiej??
-                    processingElement.getComponentInstancesNested().add(componentInstanceNested);
-                    componentInstanceNested.setPeriod(periodValue);
-                    cache.addElementToUniqueComponents(componentInstanceNested.getName());
-                    if (!"".equals(periodValue)) {
+            }
+            if (componentInstanceNested != null) {
+                //czy nie mozna lepiej??
+                LOG.debug("Preparing nested page");
+                processingElement.getComponentInstancesNested().add(componentInstanceNested);
+                componentInstanceNested.setPeriod(periodValue);
+                cache.addElementToUniqueComponents(componentInstanceNested.getName());
+                if (!"".equals(periodValue)) {
+                    String contextPage = componentInstance.getCategory().equals(Category.DEVICE.getValue()) ? "DI:" + componentInstance.getId() : "NI:" + componentInstance.getId();
+
+                    if (!componentInstance.getCategory().equals(Category.DEVICE.getValue())) {
                         DataPort waitingPlace = new DataPort("Wait", "in");
                         waitingPlace.setTimed(Boolean.TRUE);
                         componentInstanceNested.getDataPort().add(waitingPlace);
-
-                        String contextPage = "NI:" + componentInstance.getId();
                         String connectionPageSource = waitingPlace.getId();
                         String connectionPageDestination = componentInstanceNested.getId();
 
@@ -114,65 +136,72 @@ public class ElementSearcher {
 
                         cache.addConnection(connectionIn);
                         cache.addConnection(connectionOut);
+                    }
 
-                        componentInstanceNested.setComponentInstancesNested(new ArrayList<>());
-                        ComponentInstance generatedTrans = new ComponentInstance("Code Implementation", Category.GENERATED_TRANS.getValue());
-                        componentInstanceNested.getComponentInstancesNested().
-                                add(generatedTrans);
+                    componentInstanceNested.setComponentInstancesNested(new ArrayList<>());
+                    ComponentInstance generatedTrans = new ComponentInstance("Code Implementation", Category.GENERATED_TRANS.getValue());
+                    componentInstanceNested.getComponentInstancesNested().
+                            add(generatedTrans);
 
-                        String additionalConnContext = TranslatorTools.generateUUID();
+                    String additionalConnContext = TranslatorTools.generateUUID();
 
-                        petriNetPager.addNewPage(additionalConnContext, componentInstanceNested.getId(), Boolean.TRUE, componentInstance.getId(), componentInstanceNested.getName());
+                    LOG.debug("Adding page: {}", componentInstanceNested.getName());
+                    petriNetPager.addNewPage(additionalConnContext, componentInstanceNested.getId(), Boolean.TRUE, componentInstance.getId(), componentInstanceNested.getName(), componentInstance.getCategory().equals(Category.DEVICE.getValue()));
 
 
-                        for (DataPort dataPort :
-                                componentInstanceNested.getDataPort()) {
-                            DataPort copyDataPort = new DataPort(dataPort.getName(), dataPort.getDirection());
-                            copyDataPort.setTimed(dataPort.getTimed());
-                            componentInstanceNested.getComponentInstancesNested().get(0).getDataPort().
-                                    add(copyDataPort);
+                    for (DataPort dataPort :
+                            componentInstanceNested.getDataPort()) {
+                        DataPort copyDataPort = new DataPort(dataPort.getName(), dataPort.getDirection());
+                        copyDataPort.setTimed(dataPort.getTimed());
+                        componentInstanceNested.getComponentInstancesNested().get(0).getDataPort().
+                                add(copyDataPort);
 
-                            String connectionSubpageContext = additionalConnContext;
-                            String connectionSubpageSource = copyDataPort.getId();
-                            String connectionSubpageDestination = generatedTrans.getId();
+                        String connectionSubpageContext = additionalConnContext;
+                        String connectionSubpageSource = copyDataPort.getId();
+                        String connectionSubpageDestination = generatedTrans.getId();
 
-                            Connection newConnection = new Connection(connectionSubpageContext, connectionSubpageSource, connectionSubpageDestination);
-                            newConnection.setSocketType(copyDataPort.getDirection());
-                            if ("Wait".equals(copyDataPort.getName())) {
-                                newConnection.setTimed(Boolean.TRUE);
-                            }
-                            cache.addConnection(newConnection);
+                        Connection newConnection = new Connection(connectionSubpageContext, connectionSubpageSource, connectionSubpageDestination);
+                        newConnection.setSocketType(copyDataPort.getDirection());
+                        if ("Wait".equals(copyDataPort.getName())) {
+                            newConnection.setTimed(Boolean.TRUE);
+                        }
+                        cache.addConnection(newConnection);
 
-                            if ("Wait".equals(copyDataPort.getName())) {
-                                Connection returnConnection = new Connection(connectionSubpageContext, connectionSubpageSource, connectionSubpageDestination);
-                                String oppositeDirection = "in".equals(copyDataPort.getDirection()) ? "out" : "in";
-                                returnConnection.setSocketType(oppositeDirection);
-                                returnConnection.setTimed(Boolean.TRUE);
-                                returnConnection.setPeriodArc("1@+" + periodValue);
-                                cache.addConnection(returnConnection);
-                            }
-
-                            cache.getSOCKETS().add(new Socket(componentInstanceNested.getId(), copyDataPort.getId(), dataPort.getId(), dataPort.getDirection()));
-
+                        if ("Wait".equals(copyDataPort.getName())) {
+                            Connection returnConnection = new Connection(connectionSubpageContext, connectionSubpageSource, connectionSubpageDestination);
+                            String oppositeDirection = "in".equals(copyDataPort.getDirection()) ? "out" : "in";
+                            returnConnection.setSocketType(oppositeDirection);
+                            returnConnection.setTimed(Boolean.TRUE);
+                            returnConnection.setPeriodArc("1@+" + periodValue);
+                            cache.addConnection(returnConnection);
                         }
 
-                    }
-                }
-                // zagniezdzone komponenenty
-                NodeList nestedComponents = actualComponent.getElementsByTagName("componentInstance");
-                if (nestedComponents.getLength() != 0) {
-                    searchElements(nestedComponents, componentInstance);
+                        cache.getSOCKETS().add(new Socket(componentInstanceNested.getId(), copyDataPort.getId(), dataPort.getId(), dataPort.getDirection()));
 
-                } else {
-                    if (!cache.isUniqueComponentsContain(componentInstance.getName())) {
-                        cache.addElementToComponentInstances(componentInstance);
-                        cache.addElementToUniqueComponents(componentInstance.getName());
                     }
-                }
 
+                }
             }
-        }
+            // zagniezdzone komponenenty
+            NodeList nestedComponents = actualComponent.getElementsByTagName("componentInstance");
+            if (nestedComponents.getLength() != 0) {
+                LOG.debug("Adding nestedComponents : {} ", nestedComponents.item(0));
+                searchElements(nestedComponents, componentInstance);
+            } else if (componentInstance.getCategory().equals(Category.DEVICE.getValue())) {
+                LOG.debug("Adding nestedDevice : {} ", component);
+                if (!cache.isUniqueComponentsContain(componentInstance.getName())) {
+                    cache.addElementToComponentInstances(componentInstance);
+                }
+                searchElement(component, componentInstance);
+            } else {
+                if (!cache.isUniqueComponentsContain(componentInstance.getName())) {
+                    LOG.debug("Adding component : {} ", componentInstance.getName());
+                    cache.addElementToComponentInstances(componentInstance);
+                    cache.addElementToUniqueComponents(componentInstance.getName());
+                }
+            }
 
+        }
     }
 
     public void searchConnections(NodeList connections) {
@@ -213,7 +242,7 @@ public class ElementSearcher {
                     additionalConnConnection.setGenerate(Boolean.TRUE);
                     additionalConnConnection.setSocketType("in");
                     ConnectionNode connectionNode = getConnectionNode(destinationPath, null, null);
-                    petriNetPager.addNewPage(context, cache.getComponentInstanceByIndex(destinationPath.get(0)).getId(), Boolean.FALSE, null, connectionNode.getTransName());
+                    petriNetPager.addNewPage(context, cache.getComponentInstanceByIndex(destinationPath.get(0)).getId(), Boolean.FALSE, null, connectionNode.getTransName(), false);
                     cache.addConnection(additionalConnConnection);
                 }
                 else if (sourcePath.get(0) != null && Category.PROCESS.getValue().equals(cache.getComponentInstanceByIndex(sourcePath.get(0)).getCategory()) &&
@@ -225,7 +254,7 @@ public class ElementSearcher {
                     Connection additionalConnConnection = new Connection(additionalConnContext, additionalConnSource, additionalConnDestination);
                     additionalConnConnection.setGenerate(Boolean.TRUE);
                     additionalConnConnection.setSocketType("out");
-                    petriNetPager.addNewPage(context, cache.getComponentInstanceByIndex(sourcePath.get(0)).getId(), Boolean.FALSE, null, cache.getComponentInstanceByIndex(sourcePath.get(0)).getName());
+                    petriNetPager.addNewPage(context, cache.getComponentInstanceByIndex(sourcePath.get(0)).getId(), Boolean.FALSE, null, cache.getComponentInstanceByIndex(sourcePath.get(0)).getName(), false);
                     cache.addConnection(additionalConnConnection);
                 }
 

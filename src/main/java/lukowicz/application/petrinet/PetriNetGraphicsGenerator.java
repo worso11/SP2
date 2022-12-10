@@ -430,16 +430,17 @@ public class PetriNetGraphicsGenerator {
     public Element generateGraphicsAttributeTransition(Document pnmlDocument, ComponentInstance componentInstance) {
         Element transition = generateAttributesGraphicsForTransition(pnmlDocument, componentInstance);
 
-        if (Category.PROCESS.getValue().equals(componentInstance.getCategory()) || (Category.THREAD.getValue().equals(componentInstance.getCategory()) && !"".equals(componentInstance.getPeriod()))) {
+        if (Category.PROCESS.getValue().equals(componentInstance.getCategory()) || Category.DEVICE.getValue().equals(componentInstance.getCategory()) || (Category.THREAD.getValue().equals(componentInstance.getCategory()) && !"".equals(componentInstance.getPeriod()))) {
             Element substElement = pnmlDocument.createElement("subst");
             Attr subpageAttr = pnmlDocument.createAttribute("subpage");
-            String pageId = petriNetPager.getPageIdForTransId(componentInstance.getId());
+            String componentInstanceId = Category.DEVICE.getValue().equals(componentInstance.getCategory()) ? componentInstance.getComponentInstancesNested().get(0).getId() : componentInstance.getId();
+            String pageId = petriNetPager.getPageIdForTransId(componentInstanceId);
             subpageAttr.setValue(pageId);
             substElement.setAttributeNode(subpageAttr);
             Attr portSock = pnmlDocument.createAttribute("portsock");
             StringBuilder portSockValue = new StringBuilder();
             for (Socket socket : cache.getSOCKETS()) {
-                if (componentInstance.getId().equals(socket.getComponentId())) {
+                if (componentInstanceId.equals(socket.getComponentId())) {
                     portSockValue.append("(" + socket.getPortId() + "," + socket.getSocketId() + ")");
                 }
             }
