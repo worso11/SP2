@@ -5,6 +5,8 @@ import lukowicz.application.data.*;
 import lukowicz.application.memory.Cache;
 import lukowicz.application.memory.ElementsPosition;
 import lukowicz.application.utils.TranslatorTools;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -23,6 +25,8 @@ public class PetriNetGenerator {
 
     private PetriNetGraphicsGenerator petriNetGraphicsGenerator;
     private PetriNetTranslator petriNetTranslator;
+
+    private static Logger LOG = LoggerFactory.getLogger(ElementSearcher.class);
     private ElementSearcher elementSearcher;
     private PetriNetPager petriNetPager;
     private Cache cache = Cache.getInstance();
@@ -176,11 +180,16 @@ public class PetriNetGenerator {
                 if (Category.PROCESS.getValue().equals(dstNode.getHeadCategory()) &&
                         !dstNode.getCategory().equals(sourceNode.getCategory())) {
                     cache.getSOCKETS().add(new Socket(dstNode.getHeadId(), dstNode.getPlaceId(), sourceNode.getPlaceId(), "In"));
+                    LOG.debug("(portsock: {}, {}}", dstNode.getPlaceId(), sourceNode.getPlaceId());
                     setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "TtoP");
                     setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getHeadId(), sourceNode.getPlaceId(), "PtoT");
+                    for (Socket socket : cache.getSOCKETS()) {
+                        if (sourceNode.getPlaceId().equals(socket.getSocketId()) && !dstNode.getPlaceId().equals(socket.getPortId()) && !cache.getComponentInstanceById(socket.getComponentId()).getCategory().equals(Category.DEVICE.getValue())) {
+                            socket.setSocketId(dstNode.getPlaceId());
+                        }
+                    }
                     cache.getUsedFeature().add(sourceNode.getPlaceId());
                 }
-
                 else if (Category.PROCESS.getValue().equals(sourceNode.getHeadCategory()) && !dstNode.getCategory().equals(sourceNode.getCategory()) &&
                         "out".equals(connection.getSocketType())) {
                     cache.getSOCKETS().add(new Socket(sourceNode.getHeadId(), sourceNode.getPlaceId(), dstNode.getPlaceId(), "out"));
