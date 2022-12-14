@@ -81,20 +81,7 @@ public class ElementSearcher {
                 Element featureElement = (Element) featureInstance;
                 if (!"busAccess".equals(featureElement.getAttribute("category"))) {
                     LOG.debug("Name of feature : {} ", featureElement.getAttribute("name"));
-                    if (componentInstanceNested != null && processingElement != null && processingElement.getCategory().equals(Category.DEVICE.getValue()) && !featureElement.getAttribute("direction").equals("out")) {
-                        DataPort dp = componentInstance.getDataPortByNameAndDirection(featureElement.getAttribute("name"),
-                                featureElement.getAttribute("direction"));
-                        if (dp != null) {
-                            componentInstanceNested.getDataPort().add(dp);
-                        } else {
-                           componentInstance.getReverseFeatureInstances().remove(new DataPort(featureElement.getAttribute("name"),
-                                   featureElement.getAttribute("direction")));
-                           componentInstance.getReverseFeatureInstances();//wroc do starego porzadku
-                           dp = new DataPort(featureElement.getAttribute("name"),
-                                    featureElement.getAttribute("direction"));
-                           componentInstanceNested.getDataPort().add(dp);
-                        }
-                    } else if (componentInstanceNested != null) {
+                    if (componentInstanceNested != null) {
                         DataPort dp = componentInstance.getDataPortByNameAndDirection(featureElement.getAttribute("name"),
                                 featureElement.getAttribute("direction"));
                         if (dp != null) {
@@ -107,12 +94,6 @@ public class ElementSearcher {
                                     featureElement.getAttribute("direction"));
                             componentInstanceNested.getDataPort().add(dp);
                         }
-                        /*componentInstance.getReverseFeatureInstances().remove(new DataPort(featureElement.getAttribute("name"),
-                                featureElement.getAttribute("direction")));
-                        componentInstance.getReverseFeatureInstances();//wroc do starego porzadku
-                        DataPort dp = new DataPort(featureElement.getAttribute("name"),
-                                featureElement.getAttribute("direction"));
-                        componentInstanceNested.getDataPort().add(dp);*/
                     } else {
                         DataPort dp = new DataPort(featureElement.getAttribute("name"),
                                 featureElement.getAttribute("direction"));
@@ -128,9 +109,15 @@ public class ElementSearcher {
                 cache.addElementToUniqueComponents(componentInstanceNested.getName());
                 if (!"".equals(periodValue)) {
                     String contextPage = componentInstance.getCategory().equals(Category.DEVICE.getValue()) ? "DI:" + componentInstance.getId() : "NI:" + componentInstance.getId();
-                    String instanceName = actualComponent.getAttribute("name") + "_device";
+                    String instanceName = "";
 
-                    if (!componentInstance.getCategory().equals(Category.DEVICE.getValue())) {
+                    if (componentInstance.getCategory().equals(Category.DEVICE.getValue())) {
+                        Node classifier = actualComponent.getElementsByTagName("classifier").item(0);
+                        Element classifierElement = (Element) classifier;
+                        String href = classifierElement.getAttribute("href");
+                        instanceName = href.substring(href.lastIndexOf(".")+1);
+
+                    } else {
                         instanceName = "Code Implementation";
                         DataPort waitingPlace = new DataPort("Wait", "in");
                         waitingPlace.setTimed(Boolean.TRUE);
