@@ -2,66 +2,62 @@ Beta execution aborted: Reference is none.
 
 Call chain: (nti_ms)
 
-  item <*> in C:/cpn2000/cpnet/cpnetxml
-    -- load#load#load# in C:/cpn2000/cpnet/cpnetxml
-  item <load#>load#load# in C:/cpn2000/cpnet/cpnetxml
-    -- PageInstanceLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
-  item load#<load#>load# in C:/cpn2000/cpnet/cpnetxml
-    -- PageInstanceLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
-  item load#load#<load#> in C:/cpn2000/cpnet/cpnetxml
-    -- PageInstanceLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
-  item <*>scanElements# in C:/cpn2000/cpnet/cpnetxml
-    -- * in C:/cpn2000/cpnet/cpnetxml
-  item *<scanElements#> in ~beta/xml/xml
-    -- Element#AbstractElement# in ~beta/xml/xml
-  item onElement#<onElement#> in ~beta/xml/xml
-    -- *select# in ~beta/xml/private/xmlbody
-  item <selector#>selector# in ~beta/xml/xml
-    -- Element#AbstractElement# in ~beta/xml/xml
-  item selector#<selector#> in ~beta/xml/xml
-    -- Element#AbstractElement# in ~beta/xml/xml
-  item *<select#> in ~beta/xml/xml
-    -- Element#AbstractElement# in ~beta/xml/xml
-  item <*>scan# in ~beta/xml/private/xmlbody
-    -- *scanElements# in C:/cpn2000/cpnet/cpnetxml
-  item *<scan#> in ~beta/xml/xml
-    -- Element#AbstractElement# in ~beta/xml/xml
-  item *<scanElements#> in ~beta/xml/xml
-    -- Element#AbstractElement# in ~beta/xml/xml
-  item <*> in C:/cpn2000/cpnet/cpnetxml
-    -- load#load#load# in C:/cpn2000/cpnet/cpnetxml
-  item <load#>load#load# in C:/cpn2000/cpnet/cpnetxml
-    -- PageInstanceLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
-  item load#<load#>load# in C:/cpn2000/cpnet/cpnetxml
-    -- PageInstanceLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
-  item load#load#<load#> in C:/cpn2000/cpnet/cpnetxml
-    -- PageInstanceLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
-  item <*>scanElements# in C:/cpn2000/cpnet/cpnetxml
-    -- * in C:/cpn2000/cpnet/cpnetxml
-  item *<scanElements#> in ~beta/xml/xml
-    -- Element#AbstractElement# in ~beta/xml/xml
-  item onElement#<onElement#> in ~beta/xml/xml
-    -- *select# in ~beta/xml/private/xmlbody
-  item <selector#>selector# in ~beta/xml/xml
-    -- Element#AbstractElement# in ~beta/xml/xml
-  item selector#<selector#> in ~beta/xml/xml
-    -- Element#AbstractElement# in ~beta/xml/xml
-  item *<select#> in ~beta/xml/xml
-    -- Element#AbstractElement# in ~beta/xml/xml
-  item <*>scan# in ~beta/xml/private/xmlbody
-    -- *scanElements# in C:/cpn2000/cpnet/cpnetxml
-  item *<scan#> in ~beta/xml/xml
-    -- Element#AbstractElement# in ~beta/xml/xml
-  item *<scanElements#> in ~beta/xml/xml
-    -- Element#AbstractElement# in ~beta/xml/xml
-  item <*> in C:/cpn2000/cpnet/cpnetxml
-    -- load#load#load# in C:/cpn2000/cpnet/cpnetxml
-  item <load#>load#load# in C:/cpn2000/cpnet/cpnetxml
-    -- PageInstanceLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
-  item load#<load#>load# in C:/cpn2000/cpnet/cpnetxml
-    -- PageInstanceLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
-  item load#load#<load#> in C:/cpn2000/cpnet/cpnetxml
-    -- PageInstanceLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
+  item <*> in C:/cpn2000/cpnet/private/cpnetarcbody
+    -- bounds#bounds#bounds# in C:/cpn2000/cpnet/cpnet
+  item <bounds#>bounds#bounds# in C:/cpn2000/cpnet/cpnet
+    -- Arc#PageElement#Snapable#Highlightable#ContentItem#Entity#Notifier#Element# in C:/cpn2000/cpnet/cpnet
+  item bounds#<bounds#>bounds# in C:/cpn2000/cpnet/cpnet
+    -- Arc#PageElement#Snapable#Highlightable#ContentItem#Entity#Notifier#Element# in C:/cpn2000/cpnet/cpnet
+  item bounds#bounds#<bounds#> in ~beta/postwimp/foundation/world
+    -- Arc#PageElement#Snapable#Highlightable#ContentItem#Entity#Notifier#Element# in C:/cpn2000/cpnet/cpnet
+  item <*>scanPageElements# in C:/cpn2000/cpnet/private/cpnetcpnpagebody
+    -- * in C:/cpn2000/cpnet/private/cpnetcpnpagebody
+  item *<scanPageElements#> in C:/cpn2000/cpnet/cpnet
+    -- CPNPage#Highlightable#ContentItem#Entity#Notifier#Element# in C:/cpn2000/cpnet/cpnet
+  item *<scan#>realscan# in C:/cpn2000/cpnet/cpnetutilities
+    -- ArcIDDictionary#IdDictionary# in C:/cpn2000/cpnet/cpnet
+  item *scan#<realscan#> in C:/cpn2000/cpnet/cpnetutilities
+    -- ArcIDDictionary#IdDictionary# in C:/cpn2000/cpnet/cpnet
+  item *<scan#> in ~beta/containers/container
+    -- smartList#list#container# in C:/cpn2000/cpnet/cpnetutilities
+  item <thescanner#>theScanner# in ~beta/containers/list
+    -- smartList#list#container# in C:/cpn2000/cpnet/cpnetutilities
+  item thescanner#<theScanner#> in ~beta/containers/container
+    -- smartList#list#container# in C:/cpn2000/cpnet/cpnetutilities
+  item *<scan#> in ~beta/containers/container
+    -- smartList#list#container# in C:/cpn2000/cpnet/cpnetutilities
+  item *scan#<realscan#> in C:/cpn2000/cpnet/cpnetutilities
+    -- ArcIDDictionary#IdDictionary# in C:/cpn2000/cpnet/cpnet
+  item *<scanPageElements#> in C:/cpn2000/cpnet/cpnet
+    -- CPNPage#Highlightable#ContentItem#Entity#Notifier#Element# in C:/cpn2000/cpnet/cpnet
+  item <*> in C:/cpn2000/cpnet/private/cpnetcpnpagebody
+    -- bounds# in C:/cpn2000/cpnet/cpnet
+  item <bounds#> in C:/cpn2000/cpnet/cpnet
+    -- CPNPage#Highlightable#ContentItem#Entity#Notifier#Element# in C:/cpn2000/cpnet/cpnet
+  item <*> in C:/cpn2000/cpntools/wselements/cpnbinder
+    -- bounds#bounds# in C:/cpn2000/cpntools/wselements/cpnbinder
+  item <bounds#>bounds# in C:/cpn2000/cpntools/wselements/cpnbinder
+    -- CpnSheet#HighlightableSheet#StandardSheet#Sheet#Entity#Notifier#Element# in C:/cpn2000/cpntools/wselements/cpnbinder
+  item bounds#<bounds#> in ~beta/postwimp/foundation/world
+    -- CpnSheet#HighlightableSheet#StandardSheet#Sheet#Entity#Notifier#Element# in C:/cpn2000/cpntools/wselements/cpnbinder
+  item <calculateInitialSize#> in C:/cpn2000/cpntools/wselements/cpnbinder
+    -- CpnSheet#HighlightableSheet#StandardSheet#Sheet#Entity#Notifier#Element# in C:/cpn2000/cpntools/wselements/cpnbinder
+  item computeInitialPan#<computeInitialPan#> in C:/cpn2000/cpntools/wselements/cpnbinder
+    -- CpnSheet#HighlightableSheet#StandardSheet#Sheet#Entity#Notifier#Element# in C:/cpn2000/cpntools/wselements/cpnbinder
+  item <*> in C:/cpn2000/cpntools/wselements/private/cpnbinderbody
+    -- setContent#SetContent# in C:/cpn2000/cpntools/wselements/cpnbinder
+  item <setContent#>SetContent# in C:/cpn2000/cpntools/wselements/cpnbinder
+    -- CpnSheet#HighlightableSheet#StandardSheet#Sheet#Entity#Notifier#Element# in C:/cpn2000/cpntools/wselements/cpnbinder
+  item setContent#<SetContent#> in ~beta/postwimp/workspace
+    -- CpnSheet#HighlightableSheet#StandardSheet#Sheet#Entity#Notifier#Element# in C:/cpn2000/cpntools/wselements/cpnbinder
+  item <load#>load#load#load# in C:/cpn2000/cpnet/cpnetxml
+    -- CpnSheetLoader#SheetLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
+  item load#<load#>load#load# in C:/cpn2000/cpnet/cpnetxml
+    -- CpnSheetLoader#SheetLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
+  item load#load#<load#>load# in C:/cpn2000/cpnet/cpnetxml
+    -- CpnSheetLoader#SheetLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
+  item load#load#load#<load#> in C:/cpn2000/cpnet/cpnetxml
+    -- CpnSheetLoader#SheetLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
   item <*>scanElements# in C:/cpn2000/cpnet/cpnetxml
     -- *scanElements# in C:/cpn2000/cpnet/cpnetxml
   item *<scanElements#> in ~beta/xml/xml
@@ -81,6 +77,48 @@ Call chain: (nti_ms)
   item *<scanElements#> in ~beta/xml/xml
     -- Element#AbstractElement# in ~beta/xml/xml
   item <*>scanElements# in C:/cpn2000/cpnet/cpnetxml
+    -- load#load#load#load# in C:/cpn2000/cpnet/cpnetxml
+  item *<scanElements#> in ~beta/xml/xml
+    -- Element#AbstractElement# in ~beta/xml/xml
+  item onElement#<onElement#> in ~beta/xml/xml
+    -- *select# in ~beta/xml/private/xmlbody
+  item <selector#>selector# in ~beta/xml/xml
+    -- Element#AbstractElement# in ~beta/xml/xml
+  item selector#<selector#> in ~beta/xml/xml
+    -- Element#AbstractElement# in ~beta/xml/xml
+  item *<select#> in ~beta/xml/xml
+    -- Element#AbstractElement# in ~beta/xml/xml
+  item <*>scan# in ~beta/xml/private/xmlbody
+    -- *scanElements# in C:/cpn2000/cpnet/cpnetxml
+  item *<scan#> in ~beta/xml/xml
+    -- Element#AbstractElement# in ~beta/xml/xml
+  item *<scanElements#> in ~beta/xml/xml
+    -- Element#AbstractElement# in ~beta/xml/xml
+  item load#<load#>load#load# in C:/cpn2000/cpnet/cpnetxml
+    -- CpnBinderLoader#FolderLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
+  item load#load#<load#>load# in C:/cpn2000/cpnet/cpnetxml
+    -- CpnBinderLoader#FolderLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
+  item load#load#load#<load#> in C:/cpn2000/cpnet/cpnetxml
+    -- CpnBinderLoader#FolderLoader#NotifierLoader#Loader# in C:/cpn2000/cpnet/cpnetxml
+  item <*>scanElements# in C:/cpn2000/cpnet/cpnetxml
+    -- *scanElements# in C:/cpn2000/cpnet/cpnetxml
+  item *<scanElements#> in ~beta/xml/xml
+    -- Element#AbstractElement# in ~beta/xml/xml
+  item onElement#<onElement#> in ~beta/xml/xml
+    -- *select# in ~beta/xml/private/xmlbody
+  item <selector#>selector# in ~beta/xml/xml
+    -- Element#AbstractElement# in ~beta/xml/xml
+  item selector#<selector#> in ~beta/xml/xml
+    -- Element#AbstractElement# in ~beta/xml/xml
+  item *<select#> in ~beta/xml/xml
+    -- Element#AbstractElement# in ~beta/xml/xml
+  item <*>scan# in ~beta/xml/private/xmlbody
+    -- *scanElements# in C:/cpn2000/cpnet/cpnetxml
+  item *<scan#> in ~beta/xml/xml
+    -- Element#AbstractElement# in ~beta/xml/xml
+  item *<scanElements#> in ~beta/xml/xml
+    -- Element#AbstractElement# in ~beta/xml/xml
+  item <*>scanElements# in C:/cpn2000/cpnet/cpnetxml
     -- * in C:/cpn2000/cpnet/cpnetxml
   item *<scanElements#> in ~beta/xml/xml
     -- Element#AbstractElement# in ~beta/xml/xml
@@ -98,8 +136,6 @@ Call chain: (nti_ms)
     -- Element#AbstractElement# in ~beta/xml/xml
   item *<scanElements#> in ~beta/xml/xml
     -- Element#AbstractElement# in ~beta/xml/xml
-  item <*> in C:/cpn2000/cpnet/cpnetxml
-    -- * in C:/cpn2000/cpnet/cpnetxml
   item <*> in C:/cpn2000/cpnet/cpnetxml
     -- load#load# in C:/cpn2000/cpnet/cpnetxml
   item <load#>load# in C:/cpn2000/cpnet/cpnetxml

@@ -21,16 +21,13 @@ public class PetriNetTranslator {
 
     public void translateElements(Document pnmlDocument, Element page, List<ComponentInstance> componentInstances) {
         for (ComponentInstance componentInstance : componentInstances) {
-            String componentInstanceCategory = componentInstance.getCategory();
-            if (componentInstanceCategory.equals(Category.DEVICE.getValue()) || componentInstanceCategory.equals(Category.PROCESS.getValue())
-                    || componentInstanceCategory.equals(Category.THREAD.getValue()) || componentInstanceCategory.equals(Category.GENERATED_TRANS.getValue())) {
-                Element transition = generateTransition(pnmlDocument, componentInstance);
-                page.appendChild(transition);
-            }
+            Element transition = generateTransition(pnmlDocument, componentInstance);
+            page.appendChild(transition);
+
             List<DataPort> dataPorts = componentInstance.getDataPort();
             for (DataPort feature : dataPorts) {
                 Element place = generatePlace(pnmlDocument, feature);
-                if (cache.getUsedFeature().contains(feature.getId())) { // unikalnośc miejsc
+                if (cache.getUsedFeature().contains(feature.getId()) || componentInstance.getCategory().equals(Category.BUS.getValue())) { // unikalnośc miejsc
                     page.appendChild(place);
                 }
 

@@ -79,28 +79,33 @@ public class ElementSearcher {
                 Node featureInstance = featureInstances.item(j);
 
                 Element featureElement = (Element) featureInstance;
-                if (!"busAccess".equals(featureElement.getAttribute("category"))) {
-                    LOG.debug("Name of feature : {} ", featureElement.getAttribute("name"));
-                    if (componentInstanceNested != null) {
-                        DataPort dp = componentInstance.getDataPortByNameAndDirection(featureElement.getAttribute("name"),
-                                featureElement.getAttribute("direction"));
-                        if (dp != null) {
-                            componentInstanceNested.getDataPort().add(dp);
-                        } else {
-                            componentInstance.getReverseFeatureInstances().remove(new DataPort(featureElement.getAttribute("name"),
-                                    featureElement.getAttribute("direction")));
-                            componentInstance.getReverseFeatureInstances();//wroc do starego porzadku
-                            dp = new DataPort(featureElement.getAttribute("name"),
-                                    featureElement.getAttribute("direction"));
-                            componentInstanceNested.getDataPort().add(dp);
-                        }
+                LOG.debug("Name of feature : {} ", featureElement.getAttribute("name"));
+                DataPort dp;
+
+                if (componentInstanceNested != null) {
+                    dp = componentInstance.getDataPortByNameAndDirection(featureElement.getAttribute("name"),
+                            featureElement.getAttribute("direction"));
+                    if (dp != null) {
+                        componentInstanceNested.getDataPort().add(dp);
                     } else {
-                        DataPort dp = new DataPort(featureElement.getAttribute("name"),
+                        componentInstance.getReverseFeatureInstances().remove(new DataPort(featureElement.getAttribute("name"),
+                                featureElement.getAttribute("direction")));
+                        componentInstance.getReverseFeatureInstances();//wroc do starego porzadku
+                        dp = new DataPort(featureElement.getAttribute("name"),
                                 featureElement.getAttribute("direction"));
-                        componentInstance.getDataPort().add(dp);
+                        componentInstanceNested.getDataPort().add(dp);
                     }
+                } else {
+                     dp = new DataPort(featureElement.getAttribute("name"),
+                            featureElement.getAttribute("direction"));
+                    componentInstance.getDataPort().add(dp);
                 }
             }
+
+            if (componentInstance.getCategory().equals(Category.BUS.getValue())) {
+                componentInstance.getDataPort().add(new DataPort(actualComponent.getAttribute("name"), "out"));
+            }
+
             if (componentInstanceNested != null) {
                 //czy nie mozna lepiej??
                 LOG.debug("Preparing nested page");
@@ -210,60 +215,61 @@ public class ElementSearcher {
             Node connection = connections.item(i);
             LOG.debug("Current Element : {}", connection.getNodeName());
             Element actualConnection = (Element) connection;
-            if (!"accessConnection".equals(actualConnection.getAttribute("kind"))) {
-                LOG.debug("Name of  connection : {} ", actualConnection.getAttribute("name"));
-                NodeList connectionReferences = actualConnection.getElementsByTagName("connectionReference");
-                String contextRaw = connectionReferences.item(0).getAttributes().getNamedItem("context").getNodeValue();
-                /*LOG.debug("Context of  connection : {} ", contextRaw);
 
-                LOG.debug("source of  connection : {} ", actualConnection.getAttribute("source"));
-                LOG.debug("destination of  connection : {} ", actualConnection.getAttribute("destination"));
-                LOG.debug("destination of  connection : {} ",actualConnection.getAttribute("destination"));*/
+            LOG.debug("Name of  connection : {} ", actualConnection.getAttribute("name"));
+            NodeList connectionReferences = actualConnection.getElementsByTagName("connectionReference");
+            String contextRaw = connectionReferences.item(0).getAttributes().getNamedItem("context").getNodeValue();
+            /*LOG.debug("Context of  connection : {} ", contextRaw);
 
-                String context = contextRaw.replaceAll("\\D+", " ").trim();
-                String source = actualConnection.getAttribute("source").replaceAll("\\D+", " ").trim();
-                String destination = actualConnection.getAttribute("destination").replaceAll("\\D+", " ").trim();
+            LOG.debug("source of  connection : {} ", actualConnection.getAttribute("source"));
+            LOG.debug("destination of  connection : {} ", actualConnection.getAttribute("destination"));
+            LOG.debug("destination of  connection : {} ",actualConnection.getAttribute("destination"));*/
 
-                LOG.debug("context of  connection : {} ", context);
-                LOG.debug("source of  connection : {} ", source);
-                LOG.debug("destination of  connection : {} ", destination);
+            String context = contextRaw.replaceAll("\\D+", " ").trim();
+            String source = actualConnection.getAttribute("source").replaceAll("\\D+", " ").trim();
+            String destination = actualConnection.getAttribute("destination").replaceAll("\\D+", " ").trim();
 
-                Connection newConnection = new Connection(context, source, destination);
+            LOG.debug("context of  connection : {} ", context);
+            LOG.debug("source of  connection : {} ", source);
+            LOG.debug("destination of  connection : {} ", destination);
 
-                ArrayList<Integer> destinationPath = TranslatorTools.preparePorts(destination);
-                ArrayList<Integer> sourcePath = TranslatorTools.preparePorts(source);
+            Connection newConnection = new Connection(context, source, destination);
+
+            ArrayList<Integer> destinationPath = TranslatorTools.preparePorts(destination);
+            ArrayList<Integer> sourcePath = TranslatorTools.preparePorts(source);
 
 
-                if (destinationPath.get(0) != null && Category.PROCESS.getValue().equals(cache.getComponentInstanceByIndex(destinationPath.get(0)).getCategory()) &&
-                        !Category.PROCESS.getValue().equals(cache.getComponentInstanceByIndex(sourcePath.get(0)).getCategory())) {
-                    String additionalConnContext = destinationPath.get(0).toString();
-                    String additionalConnSource = destination;
-                    String additionalConnDestination = destination.substring(0, destination.length() - 1);
-                    Connection additionalConnConnection = new Connection(additionalConnContext, additionalConnSource, additionalConnDestination);
-                    additionalConnConnection.setGenerate(Boolean.TRUE);
-                    additionalConnConnection.setSocketType("in");
-                    ConnectionNode connectionNode = getConnectionNode(destinationPath, null, null);
-                    petriNetPager.addNewPage(context, cache.getComponentInstanceByIndex(destinationPath.get(0)).getId(), Boolean.FALSE, null, connectionNode.getTransName(), false);
-                    cache.addConnection(additionalConnConnection);
-                }
-                else if (sourcePath.get(0) != null && Category.PROCESS.getValue().equals(cache.getComponentInstanceByIndex(sourcePath.get(0)).getCategory()) &&
-                        !Category.PROCESS.getValue().equals(cache.getComponentInstanceByIndex(destinationPath.get(0)).getCategory())) {
+            if (destinationPath.get(0) != null && Category.PROCESS.getValue().equals(cache.getComponentInstanceByIndex(destinationPath.get(0)).getCategory()) &&
+                    !Category.PROCESS.getValue().equals(cache.getComponentInstanceByIndex(sourcePath.get(0)).getCategory())) {
+                String additionalConnContext = destinationPath.get(0).toString();
+                String additionalConnSource = destination;
+                String additionalConnDestination = destination.substring(0, destination.length() - 1);
+                Connection additionalConnConnection = new Connection(additionalConnContext, additionalConnSource, additionalConnDestination);
+                additionalConnConnection.setGenerate(Boolean.TRUE);
+                additionalConnConnection.setSocketType("in");
+                ConnectionNode connectionNode = getConnectionNode(destinationPath, null, null);
+                petriNetPager.addNewPage(context, cache.getComponentInstanceByIndex(destinationPath.get(0)).getId(), Boolean.FALSE, null, connectionNode.getTransName(), false);
+                cache.addConnection(additionalConnConnection);
+            }
+            else if (sourcePath.get(0) != null && Category.PROCESS.getValue().equals(cache.getComponentInstanceByIndex(sourcePath.get(0)).getCategory()) &&
+                    !Category.PROCESS.getValue().equals(cache.getComponentInstanceByIndex(destinationPath.get(0)).getCategory())) {
 
-                    String additionalConnContext = "";
-                    String additionalConnSource = source;
-                    String additionalConnDestination = destination;
-                    Connection additionalConnConnection = new Connection(additionalConnContext, additionalConnSource, additionalConnDestination);
-                    additionalConnConnection.setGenerate(Boolean.TRUE);
-                    additionalConnConnection.setSocketType("out");
-                    petriNetPager.addNewPage(context, cache.getComponentInstanceByIndex(sourcePath.get(0)).getId(), Boolean.FALSE, null, cache.getComponentInstanceByIndex(sourcePath.get(0)).getName(), false);
-                    cache.addConnection(additionalConnConnection);
-                }
+                String additionalConnContext = "";
+                String additionalConnSource = source;
+                String additionalConnDestination = destination;
+                Connection additionalConnConnection = new Connection(additionalConnContext, additionalConnSource, additionalConnDestination);
+                additionalConnConnection.setGenerate(Boolean.TRUE);
+                additionalConnConnection.setSocketType("out");
+                petriNetPager.addNewPage(context, cache.getComponentInstanceByIndex(sourcePath.get(0)).getId(), Boolean.FALSE, null, cache.getComponentInstanceByIndex(sourcePath.get(0)).getName(), false);
+                cache.addConnection(additionalConnConnection);
+            }
 
-                ConnectionNode destinationNode = getConnectionNode(destinationPath, null, null);
-                ConnectionNode sourceNode = getConnectionNode(sourcePath, null, null);
-                String socketId = new String();
-                String portId = new String();
+            ConnectionNode destinationNode = getConnectionNode(destinationPath, null, null);
+            ConnectionNode sourceNode = getConnectionNode(sourcePath, null, null);
+            String socketId = new String();
+            String portId = new String();
 
+            if (destinationNode.getPlaceId() != null && sourceNode.getPlaceId() != null) {
                 for (Socket socket : cache.getSOCKETS()) {
                     if (destinationNode.getPlaceId().equals(socket.getSocketId())) {
                         portId = socket.getPortId();
@@ -271,18 +277,17 @@ public class ElementSearcher {
                         socketId = socket.getSocketId();
                     }
                 }
+            }
 
-                if (!portId.isEmpty() && !socketId.isEmpty()) {
-                    for (Socket socket : cache.getSOCKETS()) {
-                        if (portId.equals(socket.getPortId()) && !cache.getComponentInstanceById(socket.getComponentId()).getCategory().equals(Category.DEVICE.getValue())) {
-                            socket.setSocketId(socketId);
-                        }
+            if (!portId.isEmpty() && !socketId.isEmpty()) {
+                for (Socket socket : cache.getSOCKETS()) {
+                    if (portId.equals(socket.getPortId()) && !cache.getComponentInstanceById(socket.getComponentId()).getCategory().equals(Category.DEVICE.getValue())) {
+                        socket.setSocketId(socketId);
                     }
                 }
-
-                cache.addConnection(newConnection);
-
             }
+
+            cache.addConnection(newConnection);
         }
         cache.sortConnections();
 
@@ -293,7 +298,10 @@ public class ElementSearcher {
         for (int j = 0; j < path.size(); ++j) {
             ComponentInstance processingComponent = actualComponentInstance != null ?
                     actualComponentInstance : cache.getComponentInstanceByIndex(path.get(j));
-            if (j == path.size() - 1) {
+            if (j == path.size() - 1 && path.size() == 1) {
+                return new ConnectionNode(processingComponent.getId(), processingComponent.getDataPort().get(path.get(j)).getId(), processingComponent.getCategory(), null, null,
+                        processingComponent.getPeriod(), processingComponent.getPos_X(), processingComponent.getPos_Y(), processingComponent.getName());
+            } else if (j == path.size() - 1) {
                 return new ConnectionNode(processingComponent.getId(), null, processingComponent.getCategory(), null, null,
                         processingComponent.getPeriod(), processingComponent.getPos_X(), processingComponent.getPos_Y(), processingComponent.getName());
             } else if (j == path.size() - 2) {

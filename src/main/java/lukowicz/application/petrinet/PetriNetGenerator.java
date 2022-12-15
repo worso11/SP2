@@ -140,6 +140,8 @@ public class PetriNetGenerator {
     }
 
     private List<Node> generateConnections(String actualContext, Document pnmlDocument, Element page) {
+        Boolean busPlaceAdded = false;
+
         List<Node> arcs = new ArrayList<>();
         for (Connection connection : cache.getCONNECTIONS()) {
             if (actualContext.equals(connection.getContext())) {
@@ -199,9 +201,7 @@ public class PetriNetGenerator {
                 } else if (Boolean.TRUE.equals(connection.getGenerate()) && "in".equals(connection.getSocketType())) {
                     setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "PtoT");
                     cache.getUsedFeature().add(sourceNode.getPlaceId());
-
-                } else if (Boolean.FALSE.equals(connection.getGenerate()) && connection.getSocketType() == null &&
-                        !sourceNode.getCategory().equals(Category.BUS.getValue())) {
+                } else if (Boolean.FALSE.equals(connection.getGenerate()) && connection.getSocketType() == null && !Category.BUS.getValue().equals(sourceNode.getCategory())) {
                     setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "TtoP");
                     if (!isFirstLayer(dstNode.getCategory())) {
                         setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getTransId(), sourceNode.getPlaceId(), "PtoT");
@@ -212,12 +212,19 @@ public class PetriNetGenerator {
                     setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getTransId(), sourceNode.getPlaceId(), "PtoT");
                     cache.getUsedFeature().add(sourceNode.getPlaceId());  // było sourceNode.getPlaceId jak chcemy miejsce z wyjsciowego
                 }
-                transend.setAttributeNode(transendIdRef);
-                placeend.setAttributeNode(placeendIdRef);
-                arc1.setAttributeNode(arcOrientation);
-                arc1.appendChild(transend);
-                arc1.appendChild(placeend);
-                arcs.add(arc1);
+
+                if (!Category.BUS.getValue().equals(sourceNode.getCategory()) || !busPlaceAdded) {
+                    transend.setAttributeNode(transendIdRef);
+                    placeend.setAttributeNode(placeendIdRef);
+                    arc1.setAttributeNode(arcOrientation);
+                    arc1.appendChild(transend);
+                    arc1.appendChild(placeend);
+                    arcs.add(arc1);
+
+                    if (Category.BUS.getValue().equals(sourceNode.getCategory())) {
+                        busPlaceAdded = true;
+                    }
+                }
 
                 if (!"".equals(transendIdRef2.getValue()) && !"".equals(placeendIdRef2.getValue())) {
                     transend2.setAttributeNode(transendIdRef2);
@@ -285,7 +292,7 @@ public class PetriNetGenerator {
     }
 
     private boolean isFirstLayer(String category) {
-        return Category.PROCESS.getValue().equals(category) || Category.DEVICE.getValue().equals(category);
+        return !Category.THREAD.getValue().equals(category) &&  !Category.GENERATED_TRANS.getValue().equals(category);
     }
 
 

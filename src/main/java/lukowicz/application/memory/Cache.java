@@ -35,7 +35,7 @@ public class Cache {
 
     public void moveProcesses() {
         for (int i = 0; i < COMPONENT_INSTANCES.size(); ++i) {
-            if (COMPONENT_INSTANCES.get(i).getCategory().equals(Category.PROCESS.getValue()) || COMPONENT_INSTANCES.get(i).getCategory().equals(Category.DEVICE.getValue())) {
+            if (!COMPONENT_INSTANCES.get(i).getCategory().equals(Category.THREAD.getValue())) {
                 if (COMPONENT_INSTANCES.get(i).getCategory().equals(Category.PROCESS.getValue())) {
                     HIERARCHY_TRANSITIONS.add(COMPONENT_INSTANCES.get(i));
                 }
@@ -83,6 +83,15 @@ public class Cache {
                 if (nestedComponentInstance.getId() == id) {
                     return componentInstance;
                 }
+            }
+        }
+        return null;
+    }
+
+    public ComponentInstance getBusComponentInstance() {
+        for (ComponentInstance componentInstance : COMPONENT_INSTANCES) {
+            if (componentInstance.getCategory().equals(Category.BUS.getValue())) {
+                return componentInstance;
             }
         }
         return null;
