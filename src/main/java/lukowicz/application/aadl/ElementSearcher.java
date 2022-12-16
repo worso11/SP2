@@ -287,6 +287,14 @@ public class ElementSearcher {
                 }
             }
 
+            if (sourceNode.getCategory().equals(Category.BUS.getValue()) && !portId.isEmpty()) {
+                for (Socket socket : cache.getSOCKETS()) {
+                    if (destinationNode.getPlaceId().equals(socket.getSocketId())) {
+                        socket.setSocketId(sourceNode.getPlaceId());
+                    }
+                }
+            }
+
             cache.addConnection(newConnection);
         }
         cache.sortConnections();
