@@ -182,7 +182,7 @@ public class PetriNetGenerator {
                 if (Category.PROCESS.getValue().equals(dstNode.getHeadCategory()) &&
                         !dstNode.getCategory().equals(sourceNode.getCategory())) {
                     cache.getSOCKETS().add(new Socket(dstNode.getHeadId(), dstNode.getPlaceId(), sourceNode.getPlaceId(), "In"));
-                    LOG.debug("(portsock: {}, {}}", dstNode.getPlaceId(), sourceNode.getPlaceId());
+                    LOG.debug("(portsock in: {}, {}}", dstNode.getPlaceId(), sourceNode.getPlaceId());
                     setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "TtoP");
                     setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getHeadId(), sourceNode.getPlaceId(), "PtoT");
                     for (Socket socket : cache.getSOCKETS()) {
@@ -195,9 +195,24 @@ public class PetriNetGenerator {
                 else if (Category.PROCESS.getValue().equals(sourceNode.getHeadCategory()) && !dstNode.getCategory().equals(sourceNode.getCategory()) &&
                         "out".equals(connection.getSocketType())) {
                     cache.getSOCKETS().add(new Socket(sourceNode.getHeadId(), sourceNode.getPlaceId(), dstNode.getPlaceId(), "out"));
+                    LOG.debug("(portsock out: {}, {}}", sourceNode.getPlaceId(), dstNode.getPlaceId());
                     setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getHeadId(), dstNode.getPlaceId(), "TtoP");
                     setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getTransId(), dstNode.getPlaceId(), "PtoT");
                     cache.getUsedFeature().add(dstNode.getPlaceId());
+                } else if (Category.PROCESS.getValue().equals(sourceNode.getHeadCategory()) && dstNode.getCategory().equals(sourceNode.getCategory()) && sourceNode.getHeadId() != dstNode.getHeadId()) {
+                    LOG.debug("Process to process - system");
+                    cache.getSOCKETS().add(new Socket(sourceNode.getHeadId(), sourceNode.getPlaceId(), sourceNode.getPlaceId() + "0", "out"));
+                    cache.getSOCKETS().add(new Socket(dstNode.getHeadId(), dstNode.getPlaceId(), sourceNode.getPlaceId() + "0", "in"));
+                    setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getHeadId(), sourceNode.getPlaceId() + "0", "TtoP");
+                    setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getHeadId(), sourceNode.getPlaceId() + "0", "PtoT");
+                    for (Socket socket : cache.getSOCKETS()) {
+                        if (sourceNode.getPlaceId().equals(socket.getSocketId()) && !dstNode.getPlaceId().equals(socket.getPortId())
+                                && !cache.getComponentInstanceById(socket.getComponentId()).getCategory().equals(Category.DEVICE.getValue()) && socket.getDirection() == "in") {
+                            socket.setSocketId(dstNode.getPlaceId());
+                            LOG.debug("Process to process - cos");
+                        }
+                    }
+                    cache.getUsedFeature().add(sourceNode.getPlaceId() + "0");
                 } else if (Boolean.TRUE.equals(connection.getGenerate()) && "in".equals(connection.getSocketType())) {
                     setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "PtoT");
                     cache.getUsedFeature().add(sourceNode.getPlaceId());
@@ -235,7 +250,9 @@ public class PetriNetGenerator {
                     arc2.appendChild(placeend2);
                     arcs.add(arc2);
                 }
-            } else if ((connection.getContext().length() >= 4 && "NI:".equals(connection.getContext().substring(0, 3)) && cache.getContextByTransId(connection.getContext().substring(3)).equals(actualContext))
+            } else if ((connection.getContext().length() >= 4 && "NI:".equals(connection.getContext().substring(0, 3))
+                        && cache.getContextByTransId(connection.getContext().substring(3)) != null
+                        && cache.getContextByTransId(connection.getContext().substring(3)).equals(actualContext))
                         || (connection.getContext().length() >= 4 && "DI:".equals(connection.getContext().substring(0, 3)))
             ) {
                 Element arc1 = pnmlDocument.createElement("arc");

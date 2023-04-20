@@ -26,7 +26,9 @@ public class Socket {
         return socketId;
     }
 
-    public void setSocketId(String socketId) {this.socketId = socketId; }
+    public String getDirection() {
+        return direction;
+    }
 
-    public void setPortId(String portId) {this.portId = portId; }
+    public void setSocketId(String socketId) {this.socketId = socketId; }
 }

@@ -26,8 +26,14 @@ public class PetriNetTranslator {
 
             List<DataPort> dataPorts = componentInstance.getDataPort();
             for (DataPort feature : dataPorts) {
-                Element place = generatePlace(pnmlDocument, feature);
-                if (cache.getUsedFeature().contains(feature.getId()) || componentInstance.getCategory().equals(Category.BUS.getValue())) { // unikalnośc miejsc
+                if (cache.getUsedFeature().contains(feature.getId() + "0")) {
+                    DataPort dp = new DataPort(feature.getName(), feature.getDirection());
+                    dp.setId(feature.getId() + "0");
+                    Element place = generatePlace(pnmlDocument, dp);
+                    page.appendChild(place);
+                    cache.getUsedFeature().remove(feature.getId() + "0");
+                } else if (cache.getUsedFeature().contains(feature.getId()) || componentInstance.getCategory().equals(Category.BUS.getValue())) { // unikalnośc miejsc
+                    Element place = generatePlace(pnmlDocument, feature);
                     page.appendChild(place);
                 }
 

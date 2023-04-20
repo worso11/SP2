@@ -3,6 +3,8 @@ package lukowicz.application.petrinet;
 import lukowicz.application.data.Page;
 import lukowicz.application.memory.Cache;
 import lukowicz.application.utils.TranslatorTools;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -13,6 +15,8 @@ import java.util.List;
 public class PetriNetPager {
 
     private Cache cache = Cache.getInstance();
+
+    private static Logger LOG = LoggerFactory.getLogger(PetriNetPager.class);
 
     public PetriNetPager(){}
 
@@ -30,6 +34,7 @@ public class PetriNetPager {
 
 
     public  String getPageIdForTransId(String transId) {
+        LOG.debug("transId: {}", transId);
         return getPages().stream().filter(e -> transId.equals(e.getTransId())).findFirst().get().getPageId();
     }
 
