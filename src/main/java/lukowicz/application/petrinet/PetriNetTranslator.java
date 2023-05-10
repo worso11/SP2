@@ -20,12 +20,23 @@ public class PetriNetTranslator {
     }
 
     public void translateElements(Document pnmlDocument, Element page, List<ComponentInstance> componentInstances) {
+        int waitCount = 0;
+
         for (ComponentInstance componentInstance : componentInstances) {
+
             Element transition = generateTransition(pnmlDocument, componentInstance);
             page.appendChild(transition);
 
             List<DataPort> dataPorts = componentInstance.getDataPort();
             for (DataPort feature : dataPorts) {
+                if (feature.getName().equals("Wait")) {
+                    if (waitCount > 0) {
+                        feature.setName("Wait" + waitCount);
+                    }
+
+                    waitCount += 1;
+                }
+
                 if (cache.getUsedFeature().contains(feature.getId() + "0")) {
                     DataPort dp = new DataPort(feature.getName(), feature.getDirection());
                     dp.setId(feature.getId() + "0");

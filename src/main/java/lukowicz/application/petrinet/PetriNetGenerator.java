@@ -205,13 +205,6 @@ public class PetriNetGenerator {
                     cache.getSOCKETS().add(new Socket(dstNode.getHeadId(), dstNode.getPlaceId(), sourceNode.getPlaceId() + "0", "in"));
                     setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getHeadId(), sourceNode.getPlaceId() + "0", "TtoP");
                     setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getHeadId(), sourceNode.getPlaceId() + "0", "PtoT");
-                    for (Socket socket : cache.getSOCKETS()) {
-                        if (sourceNode.getPlaceId().equals(socket.getSocketId()) && !dstNode.getPlaceId().equals(socket.getPortId())
-                                && !cache.getComponentInstanceById(socket.getComponentId()).getCategory().equals(Category.DEVICE.getValue()) && socket.getDirection() == "in") {
-                            socket.setSocketId(dstNode.getPlaceId());
-                            LOG.debug("Process to process - cos");
-                        }
-                    }
                     cache.getUsedFeature().add(sourceNode.getPlaceId() + "0");
                 } else if (Boolean.TRUE.equals(connection.getGenerate()) && "in".equals(connection.getSocketType())) {
                     setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "PtoT");

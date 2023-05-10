@@ -272,6 +272,7 @@ public class ElementSearcher {
                 additionalConnConnection2.setGenerate(Boolean.TRUE);
                 additionalConnConnection2.setSocketType("out");
                 cache.addConnection(additionalConnConnection2);
+                petriNetPager.addNewPage(context, cache.getComponentInstanceByIndex(sourcePath.get(0)).getId(), Boolean.FALSE, null, cache.getComponentInstanceByIndex(sourcePath.get(0)).getName(), false);
                 LOG.debug("connection : {}, {}, {} ", additionalConnContext2, additionalConnSource2, additionalConnDestination2);
 
                 String additionalConnContext = destinationPath.get(0).toString();
