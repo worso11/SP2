@@ -18,6 +18,10 @@ public class ComponentInstance {
     private List<ComponentInstance> componentInstancesNested = new ArrayList<>();
     private String period;
 
+    private String time;
+
+    private String priority;
+
     public ComponentInstance(String name, String category) {
         this.name = name;
         this.category = category;
@@ -65,6 +69,16 @@ public class ComponentInstance {
         return componentInstancesNested;
     }
 
+    public ComponentInstance getComponentInstancesNestedByName(String name) {
+        for (ComponentInstance componentInstance : componentInstancesNested) {
+            if (componentInstance.getName().equals(name)) {
+                return componentInstance;
+            }
+        }
+
+        return null;
+    }
+
     public void setComponentInstancesNested(List<ComponentInstance> componentInstancesNested) {
         this.componentInstancesNested = componentInstancesNested;
     }
@@ -84,8 +98,25 @@ public class ComponentInstance {
         this.period = period;
     }
 
+    public void setTime(String time) {
+        this.time = time;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+
     public String getPeriod() {
         return period;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+
+    public String getPriority() {
+        return priority;
     }
 
     public void setPos_X(Double pos_X) {

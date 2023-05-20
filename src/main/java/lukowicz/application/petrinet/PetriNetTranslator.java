@@ -43,7 +43,7 @@ public class PetriNetTranslator {
                     Element place = generatePlace(pnmlDocument, dp);
                     page.appendChild(place);
                     cache.getUsedFeature().remove(feature.getId() + "0");
-                } else if (cache.getUsedFeature().contains(feature.getId()) || componentInstance.getCategory().equals(Category.BUS.getValue())) { // unikalnośc miejsc
+                } else if (cache.getUsedFeature().contains(feature.getId())) {//|| componentInstance.getCategory().equals(Category.BUS.getValue())) { // unikalnośc miejsc
                     Element place = generatePlace(pnmlDocument, feature);
                     page.appendChild(place);
                 }

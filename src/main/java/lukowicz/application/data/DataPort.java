@@ -10,7 +10,9 @@ public class DataPort {
     private Double pos_X;
     private Double pos_Y;
     private String direction;
-    private Boolean isTimed = Boolean.FALSE;
+    private Boolean isTimed = Boolean.TRUE;
+
+    private Integer tokenValue = 0;
 
     public DataPort(String name, String direction) {
         this.name = name;
@@ -39,6 +41,10 @@ public class DataPort {
         return direction;
     }
 
+    public void setDirection(String direction) {
+        this.direction = direction;
+    }
+
 
     public Boolean getTimed() {
         return isTimed;
@@ -46,6 +52,14 @@ public class DataPort {
 
     public void setTimed(Boolean timed) {
         isTimed = timed;
+    }
+
+    public Integer getTokenValue() {
+        return tokenValue;
+    }
+
+    public void setTokenValue(Integer tokenValue) {
+        this.tokenValue = tokenValue;
     }
 
     @Override

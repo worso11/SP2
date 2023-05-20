@@ -77,6 +77,18 @@ public class PetriNetGenerator {
 
         //cache.moveProcesses();
 
+        Integer maxPriority = 0;
+
+        for (ComponentInstance pageProcess : cache.getHIERARCHY_TRANSITIONS()) {
+            maxPriority = getHigherPriority(pageProcess, maxPriority);
+        }
+
+        LOG.debug("Max priority: " + maxPriority);
+
+        for (ComponentInstance pageProcess : cache.getHIERARCHY_TRANSITIONS()) {
+            normalizeAndInversePriority(pageProcess, maxPriority);
+        }
+
         for (ComponentInstance pageProcess : cache.getHIERARCHY_TRANSITIONS()) {
             actualPage = petriNetPager.getPageForTransId(pageProcess.getId());
             Element pageForProcess = petriNetPager.generateNewPage(actualPage.getPageId(), petriNetDocument, root, actualPage.getPageName());
@@ -120,7 +132,16 @@ public class PetriNetGenerator {
                 Attr arcId = pnmlDocument.createAttribute("id");
                 arcId.setValue(connection.getId());
                 arc1.setAttributeNode(arcId);
-                String directionArc = "in".equalsIgnoreCase(connection.getSocketType()) ? "PtoT" : "TtoP";
+                String directionArc = "";
+
+                if ("in".equalsIgnoreCase(connection.getSocketType())) {
+                    directionArc = "PtoT";
+                } else if ("bothdir".equalsIgnoreCase(connection.getSocketType())) {
+                    directionArc = "BOTHDIR";
+                } else {
+                    directionArc = "TtoP";
+                }
+
                 setArcNodes(transendIdRef, placeendIdRef, arcOrientation, connection.getDestination(), connection.getSource(), directionArc);
                 transend.setAttributeNode(transendIdRef);
                 placeend.setAttributeNode(placeendIdRef);
@@ -145,13 +166,6 @@ public class PetriNetGenerator {
         List<Node> arcs = new ArrayList<>();
         for (Connection connection : cache.getCONNECTIONS()) {
             if (actualContext.equals(connection.getContext())) {
-
-                ArrayList<Integer> source = TranslatorTools.preparePorts(connection.getSource());
-                ArrayList<Integer> dst = TranslatorTools.preparePorts(connection.getDestination());
-
-                ConnectionNode sourceNode = elementSearcher.getConnectionNode(source, null, null);
-                ConnectionNode dstNode = elementSearcher.getConnectionNode(dst, null, null);
-
                 Element arc1 = pnmlDocument.createElement("arc");
                 Attr arcId = pnmlDocument.createAttribute("id");
                 arcId.setValue(connection.getId());
@@ -179,58 +193,84 @@ public class PetriNetGenerator {
                 Attr placeendIdRef2 = pnmlDocument.createAttribute("idref");
                 Attr arcOrientation2 = pnmlDocument.createAttribute("orientation");
 
-                if (Category.PROCESS.getValue().equals(dstNode.getHeadCategory()) &&
-                        !dstNode.getCategory().equals(sourceNode.getCategory())) {
-                    cache.getSOCKETS().add(new Socket(dstNode.getHeadId(), dstNode.getPlaceId(), sourceNode.getPlaceId(), "In"));
-                    LOG.debug("(portsock in: {}, {}}", dstNode.getPlaceId(), sourceNode.getPlaceId());
-                    setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "TtoP");
-                    setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getHeadId(), sourceNode.getPlaceId(), "PtoT");
-                    for (Socket socket : cache.getSOCKETS()) {
-                        if (sourceNode.getPlaceId().equals(socket.getSocketId()) && !dstNode.getPlaceId().equals(socket.getPortId()) && !cache.getComponentInstanceById(socket.getComponentId()).getCategory().equals(Category.DEVICE.getValue())) {
-                            socket.setSocketId(dstNode.getPlaceId());
-                        }
-                    }
-                    cache.getUsedFeature().add(sourceNode.getPlaceId());
-                }
-                else if (Category.PROCESS.getValue().equals(sourceNode.getHeadCategory()) && !dstNode.getCategory().equals(sourceNode.getCategory()) &&
-                        "out".equals(connection.getSocketType())) {
-                    cache.getSOCKETS().add(new Socket(sourceNode.getHeadId(), sourceNode.getPlaceId(), dstNode.getPlaceId(), "out"));
-                    LOG.debug("(portsock out: {}, {}}", sourceNode.getPlaceId(), dstNode.getPlaceId());
-                    setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getHeadId(), dstNode.getPlaceId(), "TtoP");
-                    setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getTransId(), dstNode.getPlaceId(), "PtoT");
-                    cache.getUsedFeature().add(dstNode.getPlaceId());
-                } else if (Category.PROCESS.getValue().equals(sourceNode.getHeadCategory()) && dstNode.getCategory().equals(sourceNode.getCategory()) && sourceNode.getHeadId() != dstNode.getHeadId()) {
-                    LOG.debug("Process to process - system");
-                    cache.getSOCKETS().add(new Socket(sourceNode.getHeadId(), sourceNode.getPlaceId(), sourceNode.getPlaceId() + "0", "out"));
-                    cache.getSOCKETS().add(new Socket(dstNode.getHeadId(), dstNode.getPlaceId(), sourceNode.getPlaceId() + "0", "in"));
-                    setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getHeadId(), sourceNode.getPlaceId() + "0", "TtoP");
-                    setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getHeadId(), sourceNode.getPlaceId() + "0", "PtoT");
-                    cache.getUsedFeature().add(sourceNode.getPlaceId() + "0");
-                } else if (Boolean.TRUE.equals(connection.getGenerate()) && "in".equals(connection.getSocketType())) {
-                    setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "PtoT");
-                    cache.getUsedFeature().add(sourceNode.getPlaceId());
-                } else if (Boolean.FALSE.equals(connection.getGenerate()) && connection.getSocketType() == null && !Category.BUS.getValue().equals(sourceNode.getCategory())) {
-                    setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "TtoP");
-                    if (!isFirstLayer(dstNode.getCategory())) {
-                        setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getTransId(), sourceNode.getPlaceId(), "PtoT");
-                    }
-                    cache.getUsedFeature().add(sourceNode.getPlaceId());
-                } else {
-                    setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "TtoP");
-                    setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getTransId(), sourceNode.getPlaceId(), "PtoT");
-                    cache.getUsedFeature().add(sourceNode.getPlaceId());  // było sourceNode.getPlaceId jak chcemy miejsce z wyjsciowego
-                }
+                if (actualContext.equals("") && !connection.getSource().contains(" ") && !connection.getDestination().contains(" ")) {
+                    setArcNodes(transendIdRef, placeendIdRef, arcOrientation, connection.getDestination(), connection.getSource(), "PtoT");
+                    cache.getUsedFeature().add(connection.getSource());
 
-                if (!Category.BUS.getValue().equals(sourceNode.getCategory()) || !busPlaceAdded) {
                     transend.setAttributeNode(transendIdRef);
                     placeend.setAttributeNode(placeendIdRef);
                     arc1.setAttributeNode(arcOrientation);
                     arc1.appendChild(transend);
                     arc1.appendChild(placeend);
                     arcs.add(arc1);
+                } else {
+                    ArrayList<Integer> source = TranslatorTools.preparePorts(connection.getSource());
+                    ArrayList<Integer> dst = TranslatorTools.preparePorts(connection.getDestination());
 
-                    if (Category.BUS.getValue().equals(sourceNode.getCategory())) {
-                        busPlaceAdded = true;
+                    ConnectionNode sourceNode = elementSearcher.getConnectionNode(source, null, null);
+                    ConnectionNode dstNode = elementSearcher.getConnectionNode(dst, null, null);
+
+                    if (Category.PROCESS.getValue().equals(dstNode.getHeadCategory()) &&
+                            !dstNode.getCategory().equals(sourceNode.getCategory())) {
+                        cache.getSOCKETS().add(new Socket(dstNode.getHeadId(), dstNode.getPlaceId(), sourceNode.getPlaceId(), "In"));
+                        LOG.debug("(portsock in: {}, {}}", dstNode.getPlaceId(), sourceNode.getPlaceId());
+                        setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "TtoP");
+                        setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getHeadId(), sourceNode.getPlaceId(), "PtoT");
+                        for (Socket socket : cache.getSOCKETS()) {
+                            if (sourceNode.getPlaceId().equals(socket.getSocketId()) && !dstNode.getPlaceId().equals(socket.getPortId()) && !cache.getComponentInstanceById(socket.getComponentId()).getCategory().equals(Category.DEVICE.getValue())) {
+                                socket.setSocketId(dstNode.getPlaceId());
+                            }
+                        }
+                        cache.getUsedFeature().add(sourceNode.getPlaceId());
+                    } else if (Category.PROCESS.getValue().equals(sourceNode.getHeadCategory()) && !dstNode.getCategory().equals(sourceNode.getCategory()) &&
+                            "out".equals(connection.getSocketType())) {
+                        cache.getSOCKETS().add(new Socket(sourceNode.getHeadId(), sourceNode.getPlaceId(), dstNode.getPlaceId(), "out"));
+                        LOG.debug("(portsock out: {}, {}}", sourceNode.getPlaceId(), dstNode.getPlaceId());
+                        setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getHeadId(), dstNode.getPlaceId(), "TtoP");
+                        setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getTransId(), dstNode.getPlaceId(), "PtoT");
+                        cache.getUsedFeature().add(dstNode.getPlaceId());
+                    } else if (Category.PROCESS.getValue().equals(sourceNode.getHeadCategory()) && dstNode.getCategory().equals(sourceNode.getCategory()) && sourceNode.getHeadId() != dstNode.getHeadId()) {
+                        LOG.debug("Process to process - system");
+                        cache.getSOCKETS().add(new Socket(sourceNode.getHeadId(), sourceNode.getPlaceId(), sourceNode.getPlaceId() + "0", "out"));
+                        cache.getSOCKETS().add(new Socket(dstNode.getHeadId(), dstNode.getPlaceId(), sourceNode.getPlaceId() + "0", "in"));
+                        setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getHeadId(), sourceNode.getPlaceId() + "0", "TtoP");
+                        setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getHeadId(), sourceNode.getPlaceId() + "0", "PtoT");
+                        cache.getUsedFeature().add(sourceNode.getPlaceId() + "0");
+                    } else if (Boolean.TRUE.equals(connection.getGenerate()) && "in".equals(connection.getSocketType())) {
+                        setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "PtoT");
+                        cache.getUsedFeature().add(sourceNode.getPlaceId());
+                    } else if (Category.PROCESSOR.getValue().equals(dstNode.getCategory()) || Category.MEMORY.getValue().equals(dstNode.getCategory())) {
+                        setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "PtoT");
+                        setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getTransId(), sourceNode.getPlaceId(), "TtoP");
+                        cache.getUsedFeature().add(sourceNode.getPlaceId());
+                    } else if (Boolean.FALSE.equals(connection.getGenerate()) && connection.getSocketType() == null && !Category.BUS.getValue().equals(sourceNode.getCategory())) {
+                        setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "TtoP");
+                        if (!isFirstLayer(dstNode.getCategory())) {
+                            setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getTransId(), sourceNode.getPlaceId(), "PtoT");
+                        }
+                        cache.getUsedFeature().add(sourceNode.getPlaceId());
+                    } else if (Category.BUS.getValue().equals(sourceNode.getCategory()) && Category.DEVICE.getValue().equals(dstNode.getCategory())) {
+                        setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "BOTHDIR");
+                        setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getTransId(), sourceNode.getPlaceId(), "BOTHDIR");
+                        cache.getUsedFeature().add(sourceNode.getPlaceId());  // było sourceNode.getPlaceId jak chcemy miejsce z wyjsciowego
+                    } else {
+                        setArcNodes(transendIdRef, placeendIdRef, arcOrientation, sourceNode.getTransId(), sourceNode.getPlaceId(), "TtoP");
+                        setArcNodes(transendIdRef2, placeendIdRef2, arcOrientation2, dstNode.getTransId(), sourceNode.getPlaceId(), "PtoT");
+                        cache.getUsedFeature().add(sourceNode.getPlaceId());  // było sourceNode.getPlaceId jak chcemy miejsce z wyjsciowego
+                    }
+
+
+                    if (!Category.BUS.getValue().equals(sourceNode.getCategory()) || !busPlaceAdded) {
+                        transend.setAttributeNode(transendIdRef);
+                        placeend.setAttributeNode(placeendIdRef);
+                        arc1.setAttributeNode(arcOrientation);
+                        arc1.appendChild(transend);
+                        arc1.appendChild(placeend);
+                        arcs.add(arc1);
+
+                        if (Category.BUS.getValue().equals(sourceNode.getCategory())) {
+                            busPlaceAdded = true;
+                        }
                     }
                 }
 
@@ -305,5 +345,24 @@ public class PetriNetGenerator {
         return !Category.THREAD.getValue().equals(category) &&  !Category.GENERATED_TRANS.getValue().equals(category);
     }
 
+    private Integer getHigherPriority(ComponentInstance componentInstance, Integer priority) {
+        for (ComponentInstance componentInstanceNested: componentInstance.getComponentInstancesNested()) {
+            priority = getHigherPriority(componentInstanceNested, priority);
+        }
 
+        if (componentInstance.getPriority() != null && Integer.parseInt(componentInstance.getPriority()) > priority) {
+            return Integer.parseInt(componentInstance.getPriority());
+        } else {
+            return priority;
+        }
+    }
+
+    private void normalizeAndInversePriority(ComponentInstance componentInstance, Integer maxPriority) {
+        for (ComponentInstance componentInstanceNested: componentInstance.getComponentInstancesNested()) {
+            if (componentInstanceNested.getPriority() != null) {
+                Integer priority = maxPriority - Integer.parseInt(componentInstanceNested.getPriority()) + 1;
+                componentInstanceNested.setPriority(String.valueOf(priority));
+            }
+        }
+    }
 }

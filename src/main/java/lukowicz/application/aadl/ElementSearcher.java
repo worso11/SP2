@@ -18,6 +18,9 @@ public class ElementSearcher {
 
     private Cache cache = Cache.getInstance();
     private PetriNetPager petriNetPager;
+    private DataPort bus = null;
+
+    private String busName = "";
 
     private static Logger LOG = LoggerFactory.getLogger(ElementSearcher.class);
 
@@ -58,10 +61,15 @@ public class ElementSearcher {
 
             NodeList ownedPropertyAssociations = actualComponent.getElementsByTagName("ownedPropertyAssociation");
             String periodValue = "";
+            String computeTimeMin = "";
+            String computeTimeMax = "";
+            String computeDeadline = "";
+            String priority = "";
+
             for (int k = 0; k < ownedPropertyAssociations.getLength(); k++) {
                 Node ownerProperty = ownedPropertyAssociations.item(k);
                 Element ownedPropertyElement = (Element) ownerProperty;
-                LOG.debug("Owned Property {} ", ownedPropertyElement);
+                //LOG.debug("Owned Property {} ", ownedPropertyElement);
                 NodeList ownerProperties = ownedPropertyElement.getElementsByTagName("property");
                 for (int l = 0; l < ownerProperties.getLength(); ++l) {
                     Node property = ownerProperties.item(l);
@@ -71,6 +79,21 @@ public class ElementSearcher {
                         periodValue = ownedPropertyElement.getElementsByTagName("ownedValue").item(1).
                                 getAttributes().getNamedItem("value").getNodeValue();
                         LOG.debug("period Value {} ", periodValue);
+                    } else if (hrefProperty.getValue().contains("Timing_Properties.Compute_Execution_Time")) {
+                        computeTimeMin = ownedPropertyElement.getElementsByTagName("minimum").item(0).
+                                getAttributes().getNamedItem("value").getNodeValue();
+                        computeTimeMax = ownedPropertyElement.getElementsByTagName("maximum").item(0).
+                                getAttributes().getNamedItem("value").getNodeValue();
+                        LOG.debug("computeTimeMin Value {} ", computeTimeMin);
+                        LOG.debug("computeTimeMax Value {} ", computeTimeMax);
+                    } else if (hrefProperty.getValue().contains("Timing_Properties.Deadline")) {
+                        computeDeadline = ownedPropertyElement.getElementsByTagName("ownedValue").item(1).
+                                getAttributes().getNamedItem("value").getNodeValue();
+                        LOG.debug("computeDeadline Value {} ", computeDeadline);
+                    } else if (hrefProperty.getValue().contains("Thread_Properties.Priority")) {
+                        priority = ownedPropertyElement.getElementsByTagName("ownedValue").item(1).
+                                getAttributes().getNamedItem("value").getNodeValue();
+                        LOG.debug("priority Value {} ", priority);
                     }
 
                 }
@@ -85,6 +108,7 @@ public class ElementSearcher {
                 if (componentInstanceNested != null) {
                     dp = componentInstance.getDataPortByNameAndDirection(featureElement.getAttribute("name"),
                             featureElement.getAttribute("direction"));
+
                     if (dp != null) {
                         componentInstanceNested.getDataPort().add(dp);
                     } else {
@@ -98,12 +122,27 @@ public class ElementSearcher {
                 } else {
                      dp = new DataPort(featureElement.getAttribute("name"),
                             featureElement.getAttribute("direction"));
+
                     componentInstance.getDataPort().add(dp);
                 }
             }
 
             if (componentInstance.getCategory().equals(Category.BUS.getValue())) {
-                componentInstance.getDataPort().add(new DataPort(actualComponent.getAttribute("name"), "out"));
+                busName = componentInstance.getName();
+                bus = new DataPort("bus", "out");
+                bus.setTokenValue(1);
+                componentInstance.getDataPort().add(bus);
+            }
+
+            if (componentInstance.getCategory().equals(Category.BUS.getValue())
+                || componentInstance.getCategory().equals(Category.PROCESSOR.getValue())
+                || componentInstance.getCategory().equals(Category.MEMORY.getValue())) {
+                DataPort hardware = new DataPort(actualComponent.getAttribute("name"), "in");
+                componentInstance.getDataPort().add(hardware);
+
+                Connection newConnection = new Connection("", hardware.getId(), componentInstance.getId());
+
+                cache.addConnection(newConnection);
             }
 
             if (componentInstanceNested != null) {
@@ -113,79 +152,86 @@ public class ElementSearcher {
                 componentInstanceNested.setPeriod(periodValue);
                 cache.addElementToUniqueComponents(componentInstanceNested.getName());
                 if (!"".equals(periodValue)) {
-                    String contextPage = componentInstance.getCategory().equals(Category.DEVICE.getValue()) ? "DI:" + componentInstance.getId() : "NI:" + componentInstance.getId();
-                    String instanceName = "";
-
-                    if (componentInstance.getCategory().equals(Category.DEVICE.getValue())) {
-                        Node classifier = actualComponent.getElementsByTagName("classifier").item(0);
-                        Element classifierElement = (Element) classifier;
-                        String href = classifierElement.getAttribute("href");
-                        instanceName = href.substring(href.lastIndexOf(".")+1);
-
-                    } else {
-                        instanceName = "Code Implementation";
-                        DataPort waitingPlace = new DataPort("Wait", "in");
-                        waitingPlace.setTimed(Boolean.TRUE);
-                        componentInstanceNested.getDataPort().add(waitingPlace);
-                        String connectionPageSource = waitingPlace.getId();
-                        String connectionPageDestination = componentInstanceNested.getId();
-
-                        Connection connectionIn = new Connection(contextPage, connectionPageSource, connectionPageDestination);
-                        connectionIn.setSocketType("in");
-                        connectionIn.setGenerate(Boolean.TRUE);
-                        connectionIn.setTimed(Boolean.TRUE);
-                        Connection connectionOut = new Connection(contextPage, connectionPageSource, connectionPageDestination);
-                        connectionOut.setGenerate(Boolean.TRUE);
-                        connectionOut.setTimed(Boolean.TRUE);
-                        connectionOut.setSocketType("out");
-                        connectionOut.setPeriodArc("1@+" + periodValue);
-
-                        cache.addConnection(connectionIn);
-                        cache.addConnection(connectionOut);
-                    }
-
                     componentInstanceNested.setComponentInstancesNested(new ArrayList<>());
-                    ComponentInstance generatedTrans = new ComponentInstance(instanceName, Category.GENERATED_TRANS.getValue());
-                    componentInstanceNested.getComponentInstancesNested().
-                            add(generatedTrans);
 
                     String additionalConnContext = TranslatorTools.generateUUID();
 
                     LOG.debug("Adding page: {}", componentInstanceNested.getName());
                     petriNetPager.addNewPage(additionalConnContext, componentInstanceNested.getId(), Boolean.TRUE, componentInstance.getId(), componentInstanceNested.getName(), componentInstance.getCategory().equals(Category.DEVICE.getValue()));
 
+                    ComponentInstance periodTrans = createTransition("period", componentInstanceNested, priority);
+                    ComponentInstance entryPointTrans = createTransition("entryPoint", componentInstanceNested, priority);
+                    ComponentInstance receiveTrans = createTransition("receive", componentInstanceNested, priority);
+                    ComponentInstance sendTrans = createTransition("send", componentInstanceNested, priority);
+                    ComponentInstance completeTrans = createTransition("complete", componentInstanceNested, priority);
+                    ComponentInstance activationTrans = createTransition("activation", componentInstanceNested, "0");
+                    ComponentInstance deadlineTrans = createTransition("deadline", componentInstanceNested, "0");
+
+                    if (computeTimeMax.equals(computeTimeMin)) {
+                        completeTrans.setTime("@+" + computeTimeMax);
+                    } else {
+                        completeTrans.setTime("@+discrete(" + computeTimeMin + "," + computeTimeMax + ")");
+                    }
+
+                    deadlineTrans.setTime("@+" + computeDeadline);
+
+                    DataPort cpu = createPlace("cpu", sendTrans);
+                    DataPort period = createPlace("period", periodTrans);
+                    DataPort clock = createPlace("clock", periodTrans);
+                    DataPort working = createPlace("working", entryPointTrans);
+                    DataPort dispatched = createPlace("dispatched", entryPointTrans);
+                    DataPort compute = createPlace("compute", receiveTrans);
+                    DataPort wait = createPlace("wait", sendTrans);
+                    DataPort completed = createPlace("completed", completeTrans);
+                    DataPort missedActivation = createPlace("missedActivation", activationTrans);
+                    DataPort missedDeadline = createPlace("missedDeadline", deadlineTrans);
+
+                    period.setTokenValue(1);
+                    cpu.setTokenValue(1);
+
+                    connectPlaceAndTransition(additionalConnContext, cpu, "in", entryPointTrans, true);
+                    connectPlaceAndTransition(additionalConnContext, cpu, "in", completeTrans, true);
+                    connectPlaceAndTransition(additionalConnContext, cpu, "out", sendTrans);
+                    connectPlaceAndTransition(additionalConnContext, cpu, "in", receiveTrans);
+                    connectPlaceAndTransition(additionalConnContext, period, "in", periodTrans, true, periodValue);
+                    connectPlaceAndTransition(additionalConnContext, clock, "out", periodTrans);
+                    connectPlaceAndTransition(additionalConnContext, clock, "in", activationTrans);
+                    connectPlaceAndTransition(additionalConnContext, clock, "in", entryPointTrans);
+                    connectPlaceAndTransition(additionalConnContext, working, "out", entryPointTrans);
+                    connectPlaceAndTransition(additionalConnContext, working, "in", completeTrans);
+                    connectPlaceAndTransition(additionalConnContext, working, "in", activationTrans);
+                    connectPlaceAndTransition(additionalConnContext, working, "in", deadlineTrans);
+                    connectPlaceAndTransition(additionalConnContext, dispatched, "out", entryPointTrans);
+                    connectPlaceAndTransition(additionalConnContext, dispatched, "in", receiveTrans);
+                    connectPlaceAndTransition(additionalConnContext, dispatched, "in", activationTrans);
+                    connectPlaceAndTransition(additionalConnContext, dispatched, "in", deadlineTrans);
+                    connectPlaceAndTransition(additionalConnContext, compute, "out", receiveTrans);
+                    connectPlaceAndTransition(additionalConnContext, compute, "in", sendTrans);
+                    connectPlaceAndTransition(additionalConnContext, wait, "out", sendTrans);
+                    connectPlaceAndTransition(additionalConnContext, wait, "in", completeTrans);
+                    connectPlaceAndTransition(additionalConnContext, completed, "out", completeTrans);
+                    connectPlaceAndTransition(additionalConnContext, missedActivation, "out", activationTrans);
+                    connectPlaceAndTransition(additionalConnContext, missedDeadline, "out", deadlineTrans);
 
                     for (DataPort dataPort :
                             componentInstanceNested.getDataPort()) {
                         DataPort copyDataPort = new DataPort(dataPort.getName(), dataPort.getDirection());
                         copyDataPort.setTimed(dataPort.getTimed());
-                        componentInstanceNested.getComponentInstancesNested().get(0).getDataPort().
-                                add(copyDataPort);
 
-                        String connectionSubpageContext = additionalConnContext;
-                        String connectionSubpageSource = copyDataPort.getId();
-                        String connectionSubpageDestination = generatedTrans.getId();
-
-                        Connection newConnection = new Connection(connectionSubpageContext, connectionSubpageSource, connectionSubpageDestination);
-                        newConnection.setSocketType(copyDataPort.getDirection());
-                        if ("Wait".equals(copyDataPort.getName())) {
-                            newConnection.setTimed(Boolean.TRUE);
-                        }
-                        cache.addConnection(newConnection);
-
-                        if ("Wait".equals(copyDataPort.getName())) {
-                            Connection returnConnection = new Connection(connectionSubpageContext, connectionSubpageSource, connectionSubpageDestination);
-                            String oppositeDirection = "in".equals(copyDataPort.getDirection()) ? "out" : "in";
-                            returnConnection.setSocketType(oppositeDirection);
-                            returnConnection.setTimed(Boolean.TRUE);
-                            returnConnection.setPeriodArc("1@+" + periodValue);
-                            cache.addConnection(returnConnection);
+                        if (copyDataPort.getDirection().equals("in")) {
+                            receiveTrans.getDataPort().add(copyDataPort);
+                            if (copyDataPort.getName().equals(busName)) {
+                                copyDataPort.setName("bus");
+                                copyDataPort.setDirection("bothdir");
+                            }
+                            connectPlaceAndTransition(additionalConnContext, copyDataPort, copyDataPort.getDirection(), receiveTrans);
+                        } else {
+                            sendTrans.getDataPort().add(copyDataPort);
+                            connectPlaceAndTransition(additionalConnContext, copyDataPort, copyDataPort.getDirection(), sendTrans);
                         }
 
                         cache.getSOCKETS().add(new Socket(componentInstanceNested.getId(), copyDataPort.getId(), dataPort.getId(), dataPort.getDirection()));
-
                     }
-
                 }
             }
             // zagniezdzone komponenenty
@@ -350,9 +396,52 @@ public class ElementSearcher {
         return null;
     }
 
-
-
     public void searchSystemName(Element systemInstance) {
         cache.setSystemName(systemInstance.getAttribute("name"));
+    }
+
+    private DataPort createPlace(String name, ComponentInstance componentInstance) {
+        DataPort place = new DataPort(name, "in");
+        componentInstance.getDataPort().add(place);
+
+        return place;
+    }
+
+    private ComponentInstance createTransition(String name, ComponentInstance componentInstanceNested, String priority) {
+        ComponentInstance transaction = new ComponentInstance(name, Category.GENERATED_TRANS.getValue());
+
+        if (!priority.isEmpty()) {
+            transaction.setPriority(priority);
+        }
+
+        componentInstanceNested.getComponentInstancesNested().add(transaction);
+
+        return transaction;
+    }
+
+    private void connectPlaceAndTransition(String context, DataPort place, String placeDirection, ComponentInstance transition, Boolean bothDir, String timeValue) {
+        Connection newConnection = new Connection(context, place.getId(), transition.getId());
+        newConnection.setSocketType(placeDirection);
+
+        cache.addConnection(newConnection);
+
+        if (bothDir) {
+            String oppositeDirection = "in".equals(placeDirection) ? "out" : "in";
+            Connection newConnection2 = new Connection(context, place.getId(), transition.getId());
+            newConnection2.setSocketType(oppositeDirection);
+            cache.addConnection(newConnection2);
+
+            if (!timeValue.isEmpty()) {
+                newConnection2.setPeriodArc("1@+" + timeValue);
+            }
+        }
+    }
+
+    private void connectPlaceAndTransition(String context, DataPort place, String placeDirection, ComponentInstance transition) {
+        connectPlaceAndTransition(context, place, placeDirection, transition, false, "");
+    }
+
+    private void connectPlaceAndTransition(String context, DataPort place, String placeDirection, ComponentInstance transition, Boolean bothDir) {
+        connectPlaceAndTransition(context, place, placeDirection, transition, bothDir, "");
     }
 }

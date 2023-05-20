@@ -145,7 +145,6 @@ public class PetriNetGraphicsGenerator {
         generateSimpleType(pnmlDocument, block, "TIME", "colset TIME = time;", Boolean.FALSE);
         generateSimpleType(pnmlDocument, block, "REAL", "colset REAL = real;", Boolean.FALSE);
         generateSimpleType(pnmlDocument, block, "TINT", "colset TINT = int timed;", Boolean.TRUE);
-        generateSimpleType(pnmlDocument, block, "String", null, Boolean.FALSE);
 
         globbox.appendChild(block);
     }
@@ -308,7 +307,7 @@ public class PetriNetGraphicsGenerator {
         Element textInitMarkProperty = createTextProperty(pnmlDocument);
         initMarkProperty.appendChild(textInitMarkProperty);
 
-        Element textInitMarkPlaceContent = createTextContentInitMark(pnmlDocument);
+        Element textInitMarkPlaceContent = createTextContentInitMark(pnmlDocument, dataPort.getTokenValue());
         initMarkProperty.appendChild(textInitMarkPlaceContent);
 
         place.appendChild(initMarkProperty);
@@ -318,7 +317,7 @@ public class PetriNetGraphicsGenerator {
 
     }
 
-    private Element createTextContentInitMark(Document pnmlDocument) {
+    private Element createTextContent(Document pnmlDocument, String text) {
         Element textInitMarkPlaceContent = pnmlDocument.createElement("text");
         Attr toolInitMarkTextAttr = pnmlDocument.createAttribute("tool");
         toolInitMarkTextAttr.setValue("CPN Tools");
@@ -326,7 +325,23 @@ public class PetriNetGraphicsGenerator {
         Attr textInitMarkVersion = pnmlDocument.createAttribute("version");
         textInitMarkVersion.setValue("4.0.1");
         textInitMarkPlaceContent.setAttributeNode(textInitMarkVersion);
-        textInitMarkPlaceContent.setTextContent("1");
+        textInitMarkPlaceContent.setTextContent(text);
+        return textInitMarkPlaceContent;
+    }
+
+    private Element createTextContentInitMark(Document pnmlDocument, Integer tokenValue) {
+        Element textInitMarkPlaceContent = pnmlDocument.createElement("text");
+        Attr toolInitMarkTextAttr = pnmlDocument.createAttribute("tool");
+        toolInitMarkTextAttr.setValue("CPN Tools");
+        textInitMarkPlaceContent.setAttributeNode(toolInitMarkTextAttr);
+        Attr textInitMarkVersion = pnmlDocument.createAttribute("version");
+        textInitMarkVersion.setValue("4.0.1");
+        textInitMarkPlaceContent.setAttributeNode(textInitMarkVersion);
+
+        if (tokenValue > 0) {
+            textInitMarkPlaceContent.setTextContent(tokenValue.toString());
+        }
+
         return textInitMarkPlaceContent;
     }
 
@@ -528,10 +543,52 @@ public class PetriNetGraphicsGenerator {
         transitionText.appendChild(pnmlDocument.createTextNode(componentInstance.getName()));
         transition.appendChild(transitionText);
 
-
         Element boxProperty = pnmlDocument.createElement("box");
         createBoxProperty(pnmlDocument, boxProperty);
         transition.appendChild(boxProperty);
+
+        if (componentInstance.getTime() != null) {
+            Element timeProperty = pnmlDocument.createElement("time");
+
+            Element timePosition = createPosattr(pnmlDocument, componentInstance.getPos_X() + 100.0000, componentInstance.getPos_Y() + 35.0000);
+            timeProperty.appendChild(timePosition);
+
+            Element fillTimeProperty = createFillProperty(pnmlDocument);
+            timeProperty.appendChild(fillTimeProperty);
+
+            Element lineTimeProperty = createLineProperty(pnmlDocument);
+            timeProperty.appendChild(lineTimeProperty);
+
+            Element textTimeProperty = createTextProperty(pnmlDocument);
+            timeProperty.appendChild(textTimeProperty);
+
+            Element textTimePlaceContent = createTextContent(pnmlDocument, componentInstance.getTime());
+            timeProperty.appendChild(textTimePlaceContent);
+
+            transition.appendChild(timeProperty);
+        }
+
+        if (componentInstance.getPriority() != null) {
+            Element priorityProperty = pnmlDocument.createElement("priority");
+
+            Element timePosition = createPosattr(pnmlDocument, componentInstance.getPos_X() - 100.0000, componentInstance.getPos_Y() - 35.0000);
+            priorityProperty.appendChild(timePosition);
+
+            Element fillPriorityProperty = createFillProperty(pnmlDocument);
+            priorityProperty.appendChild(fillPriorityProperty);
+
+            Element linePriorityProperty = createLineProperty(pnmlDocument);
+            priorityProperty.appendChild(linePriorityProperty);
+
+            Element textPriorityProperty = createTextProperty(pnmlDocument);
+            priorityProperty.appendChild(textPriorityProperty);
+
+            Element textPriorityPlaceContent = createTextContent(pnmlDocument, componentInstance.getPriority());
+            priorityProperty.appendChild(textPriorityPlaceContent);
+
+            transition.appendChild(priorityProperty);
+        }
+
         return transition;
     }
 
