@@ -103,9 +103,11 @@ public class PetriNetGenerator {
             ElementsPosition.resetPositions();
         }
 
+        Element fusion = petriNetGraphicsGenerator.generateFusion(petriNetDocument);
         Element instances = petriNetPager.generatePagesInstances(petriNetDocument);
         Element binders = petriNetGraphicsGenerator.generateBinders(petriNetDocument);
 
+        root.appendChild(fusion);
         root.appendChild(instances);
         root.appendChild(binders);
 

@@ -16,6 +16,7 @@ public class Cache {
     private ArrayList<Socket> SOCKETS = new ArrayList<>();
     private Set<String> usedFeature = new HashSet<>();
     private Set<DataPort> generatedPlaces = new HashSet<>();
+    private List<DataPort> placeFusions = new ArrayList<>();
     private String systemName;
 
     private Cache() {
@@ -103,6 +104,10 @@ public class Cache {
 
     public List<Connection> getCONNECTIONS() {
         return CONNECTIONS;
+    }
+
+    public List<DataPort> getPlaceFusions() {
+        return placeFusions;
     }
 
     public void addConnection(Connection connection) {

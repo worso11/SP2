@@ -189,6 +189,11 @@ public class ElementSearcher {
                     period.setTokenValue(1);
                     cpu.setTokenValue(1);
 
+                    if (componentInstanceNested.getCategory().equals(Category.THREAD.getValue())) {
+                        cpu.setIsCpuFusion(Boolean.TRUE);
+                        cache.getPlaceFusions().add(cpu);
+                    }
+
                     connectPlaceAndTransition(additionalConnContext, cpu, "in", entryPointTrans, true);
                     connectPlaceAndTransition(additionalConnContext, cpu, "in", completeTrans, true);
                     connectPlaceAndTransition(additionalConnContext, cpu, "out", sendTrans);

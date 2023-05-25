@@ -12,6 +12,8 @@ public class DataPort {
     private String direction;
     private Boolean isTimed = Boolean.TRUE;
 
+    private Boolean isCpuFusion = Boolean.FALSE;
+
     private Integer tokenValue = 0;
 
     public DataPort(String name, String direction) {
@@ -60,6 +62,14 @@ public class DataPort {
 
     public void setTokenValue(Integer tokenValue) {
         this.tokenValue = tokenValue;
+    }
+
+    public Boolean getIsCpuFusion() {
+        return isCpuFusion;
+    }
+
+    public void setIsCpuFusion(Boolean isCpuFusion) {
+        this.isCpuFusion = isCpuFusion;
     }
 
     @Override

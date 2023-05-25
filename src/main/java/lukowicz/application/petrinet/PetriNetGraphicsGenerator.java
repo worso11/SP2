@@ -130,6 +130,30 @@ public class PetriNetGraphicsGenerator {
         return binders;
     }
 
+    public Element generateFusion(Document pnmlDocument) {
+        Element fusion = pnmlDocument.createElement("fusion");
+
+        Attr fusionIdAttr = pnmlDocument.createAttribute("id");
+        fusionIdAttr.setValue(TranslatorTools.generateUUID());
+        fusion.setAttributeNode(fusionIdAttr);
+
+        Attr fusionNameAttr = pnmlDocument.createAttribute("name");
+        fusionNameAttr.setValue("CPU Fusion");
+        fusion.setAttributeNode(fusionNameAttr);
+
+        for (DataPort place : cache.getPlaceFusions()) {
+            Element fusionElement = pnmlDocument.createElement("fusion_elem");
+
+            Attr fusionElementIdRefAttr = pnmlDocument.createAttribute("idref");
+            fusionElementIdRefAttr.setValue(place.getId());
+            fusionElement.setAttributeNode(fusionElementIdRefAttr);
+
+            fusion.appendChild(fusionElement);
+        }
+
+        return fusion;
+    }
+
     private void generateStandardUnits(Document pnmlDocument, Element globbox) {
         Element block = pnmlDocument.createElement("block");
         Attr attrId = pnmlDocument.createAttribute("id");
@@ -312,6 +336,32 @@ public class PetriNetGraphicsGenerator {
 
         place.appendChild(initMarkProperty);
 
+        if (dataPort.getIsCpuFusion()) {
+            Element fusionInfoProperty = pnmlDocument.createElement("fusioninfo");
+
+            Attr fusionInfoIdAttr = pnmlDocument.createAttribute("id");
+            fusionInfoIdAttr.setValue(TranslatorTools.generateUUID());
+            fusionInfoProperty.setAttributeNode(fusionInfoIdAttr);
+
+            Attr fusionInfoNameAttr = pnmlDocument.createAttribute("name");
+            fusionInfoNameAttr.setValue("CPU Fusion");
+            fusionInfoProperty.setAttributeNode(fusionInfoNameAttr);
+
+            Element fusionInfoPosition = createPosattr(pnmlDocument, placeXPosition, placeYPosition - 20.0000);
+            fusionInfoProperty.appendChild(fusionInfoPosition);
+
+            Element fillFusionInfoProperty = createFillProperty(pnmlDocument);
+            fusionInfoProperty.appendChild(fillFusionInfoProperty);
+
+
+            Element lineFusionInfoProperty = createLineProperty(pnmlDocument);
+            fusionInfoProperty.appendChild(lineFusionInfoProperty);
+
+            Element textFusionInfoProperty = createTextProperty(pnmlDocument);
+            fusionInfoProperty.appendChild(textFusionInfoProperty);
+
+            place.appendChild(fusionInfoProperty);
+        }
 
         return place;
 
