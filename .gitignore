@@ -25,5 +25,5 @@ replay_pid*
 
 # other
 generatedPetriNetFile.xml
-.cpn
-.aaxl2
+*.cpn
+*.aaxl2
