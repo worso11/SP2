@@ -41,6 +41,5 @@ public class ElementsPosition {
     public static void resetPositions(){
         PLACE_Y_POSITION = 376.000000;
         TRANSITION_Y_POSITION = 376.000000;
-
     }
 }

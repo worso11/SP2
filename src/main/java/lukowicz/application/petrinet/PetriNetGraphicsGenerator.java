@@ -142,7 +142,7 @@ public class PetriNetGraphicsGenerator {
         fusion.setAttributeNode(fusionNameAttr);
 
         for (DataPort place : cache.getPlaceFusions()) {
-            Element fusionElement = pnmlDocument.createElement("fusion_elem");
+            Element fusionElement = pnmlDocument.createElement("fusion_elm");
 
             Attr fusionElementIdRefAttr = pnmlDocument.createAttribute("idref");
             fusionElementIdRefAttr.setValue(place.getId());
@@ -493,6 +493,8 @@ public class PetriNetGraphicsGenerator {
 
 
     public Element generateGraphicsAttributeTransition(Document pnmlDocument, ComponentInstance componentInstance) {
+        componentInstance.setPos_X(ElementsPosition.getTRANSITION_X_POSITION());
+        componentInstance.setPos_Y(ElementsPosition.getTRANSITION_Y_POSITION());
         Element transition = generateAttributesGraphicsForTransition(pnmlDocument, componentInstance);
 
         if (Category.PROCESS.getValue().equals(componentInstance.getCategory()) || Category.DEVICE.getValue().equals(componentInstance.getCategory()) || (Category.THREAD.getValue().equals(componentInstance.getCategory()) && !"".equals(componentInstance.getPeriod()))) {

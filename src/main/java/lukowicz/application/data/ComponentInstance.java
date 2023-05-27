@@ -26,8 +26,8 @@ public class ComponentInstance {
         this.name = name;
         this.category = category;
         this.id = TranslatorTools.generateUUID();
-        this.pos_X = ElementsPosition.getTRANSITION_X_POSITION();
-        this.pos_Y = ElementsPosition.getTRANSITION_Y_POSITION();
+//        this.pos_X = ElementsPosition.getTRANSITION_X_POSITION();
+//        this.pos_Y = ElementsPosition.getTRANSITION_Y_POSITION();
     }
 
     public String getName() {
@@ -113,7 +113,6 @@ public class ComponentInstance {
     public String getTime() {
         return time;
     }
-
 
     public String getPriority() {
         return priority;

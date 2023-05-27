@@ -364,6 +364,8 @@ public class PetriNetGenerator {
             if (componentInstanceNested.getPriority() != null) {
                 Integer priority = maxPriority - Integer.parseInt(componentInstanceNested.getPriority()) + 1;
                 componentInstanceNested.setPriority(String.valueOf(priority));
+            } else {
+                componentInstanceNested.setPriority("0");
             }
         }
     }

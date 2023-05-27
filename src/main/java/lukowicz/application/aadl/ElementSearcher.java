@@ -61,8 +61,7 @@ public class ElementSearcher {
 
             NodeList ownedPropertyAssociations = actualComponent.getElementsByTagName("ownedPropertyAssociation");
             String periodValue = "";
-            String computeTimeMin = "";
-            String computeTimeMax = "";
+            String computeTime = "";
             String computeDeadline = "";
             String priority = "";
 
@@ -80,12 +79,9 @@ public class ElementSearcher {
                                 getAttributes().getNamedItem("value").getNodeValue();
                         LOG.debug("period Value {} ", periodValue);
                     } else if (hrefProperty.getValue().contains("Timing_Properties.Compute_Execution_Time")) {
-                        computeTimeMin = ownedPropertyElement.getElementsByTagName("minimum").item(0).
+                        computeTime = ownedPropertyElement.getElementsByTagName("maximum").item(0).
                                 getAttributes().getNamedItem("value").getNodeValue();
-                        computeTimeMax = ownedPropertyElement.getElementsByTagName("maximum").item(0).
-                                getAttributes().getNamedItem("value").getNodeValue();
-                        LOG.debug("computeTimeMin Value {} ", computeTimeMin);
-                        LOG.debug("computeTimeMax Value {} ", computeTimeMax);
+                        LOG.debug("computeTimeMax Value {} ", computeTime);
                     } else if (hrefProperty.getValue().contains("Timing_Properties.Deadline")) {
                         computeDeadline = ownedPropertyElement.getElementsByTagName("ownedValue").item(1).
                                 getAttributes().getNamedItem("value").getNodeValue();
@@ -167,11 +163,7 @@ public class ElementSearcher {
                     ComponentInstance activationTrans = createTransition("activation", componentInstanceNested, "0");
                     ComponentInstance deadlineTrans = createTransition("deadline", componentInstanceNested, "0");
 
-                    if (computeTimeMax.equals(computeTimeMin)) {
-                        completeTrans.setTime("@+" + computeTimeMax);
-                    } else {
-                        completeTrans.setTime("@+discrete(" + computeTimeMin + "," + computeTimeMax + ")");
-                    }
+                    completeTrans.setTime("@+" + computeTime);
 
                     deadlineTrans.setTime("@+" + computeDeadline);
 
